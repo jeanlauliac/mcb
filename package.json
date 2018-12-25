@@ -1,0 +1,19 @@
+{
+  "name": "mcb",
+  "version": "1.0.0",
+  "description": "mcb",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --config webpack.config.js --mode=development"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "ts-loader": "^5.3.2",
+    "typescript": "^3.2.2",
+    "webpack": "^4.28.2",
+    "webpack-cli": "^3.1.2"
+  }
+}
