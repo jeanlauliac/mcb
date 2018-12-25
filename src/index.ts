@@ -22,7 +22,7 @@ function step(timestamp: number) {
   draw();
 }
 
-const fieldWidth = 100;
+const fieldWidth = 30;
 const fieldHeight = 50;
 
 const field = (() => {
@@ -50,7 +50,7 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   ctx.strokeStyle = 'rgb(50, 50, 50)';
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 1;
 
   for (let row = 0; row < fieldHeight; ++row) {
     for (let col = 0; col < fieldWidth; ++col) {
@@ -82,5 +82,26 @@ function drawTile(row: number, col: number) {
   ctx.stroke();
 
 }
+
+const camMove = {x: 0, y: 0, camX: 0, camY: 0, moving: false};
+
+canvas.addEventListener('mousemove', ev => {
+  if (!camMove.moving) {
+    if ((ev.buttons & 1) !== 0) {
+      camMove.x = ev.clientX;
+      camMove.y = ev.clientY;
+      camMove.camX = cameraX;
+      camMove.camY = cameraY;
+      camMove.moving = true;
+    }
+    return;
+  }
+  if ((ev.buttons & 1) === 0) {
+    camMove.moving = false;
+    return;
+  }
+  cameraX = camMove.camX + camMove.x - ev.clientX;
+  cameraY = camMove.camY + camMove.y - ev.clientY;
+});
 
 window.requestAnimationFrame(step);
