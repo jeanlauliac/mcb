@@ -35,8 +35,8 @@ const field = (() => {
   return result;
 })();
 
-let cameraX = -70;
-let cameraY = -50;
+let cameraX = 70;
+let cameraY = 50;
 let cursorMode = 'move';
 let lastMouseEv = {clientX: 0, clientY: 0, buttons: 0};
 
@@ -62,7 +62,7 @@ const tileHalfHeight = Math.floor(tileHeight / 2);
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  ctx.strokeStyle = 'rgb(50, 50, 50)';
+  ctx.strokeStyle = '#a0a0a0';
   ctx.lineWidth = 1;
 
   for (let row = 0; row < fieldHeight; ++row) {
@@ -95,7 +95,7 @@ function drawTile(row: number, col: number) {
   ctx.stroke();
 
   if (cursorMode === 'road' && pickedTile.row === row && pickedTile.col === col) {
-    ctx.fillStyle = 'rgb(200, 0, 0)';
+    ctx.fillStyle = 'rgba(0, 255, 0, 100)';
     ctx.fill();
   }
 
@@ -104,10 +104,59 @@ function drawTile(row: number, col: number) {
 const pickedTile = {row: 0, col: 0};
 
 function pickTile(x: number, y: number) {
-  let row = Math.floor((y + cameraY) / tileHalfHeight);
-  let col = Math.floor((x + cameraX) / (tileHalfWidth * 2));
+  let fieldX = x + cameraX;
+  let fieldY = y + cameraY;
+  let gridRow = Math.floor(fieldY / tileHalfHeight);
+  let gridCol = Math.floor(fieldX / tileHalfWidth);
+  let localX = fieldX % tileHalfWidth;
+  let localY = fieldY % tileHalfHeight;
+  let row = 0;
+  let col = 0;
+  if ((gridRow + gridCol) % 2 === 0) {
+    // Bottom-left to top-right split
+    let relY = localY - tileHalfHeight;
+    if (crossProduct(tileHalfWidth, -tileHalfHeight, localX, relY) < 0) {
+      // top-left corner
+      row = gridRow;
+      if (gridRow % 2 === 0) {
+        col = gridCol / 2;
+      } else {
+        col = (gridCol - 1) / 2;
+      }
+    } else {
+      // bottom-right corner
+      row = gridRow + 1;
+      if (gridRow % 2 === 0) {
+        col = gridCol / 2;
+      } else {
+        col = (gridCol - 1) / 2 + 1;
+      }
+    }
+  } else {
+    if (crossProduct(tileHalfWidth, tileHalfHeight, localX, localY) < 0) {
+      // top-right corner
+      row = gridRow;
+      if (gridRow % 2 === 0) {
+        col = (gridCol - 1) / 2 + 1;
+      } else {
+        col = gridCol / 2;
+      }
+    } else {
+      row = gridRow + 1;
+      if (gridRow % 2 === 0) {
+        col = (gridCol - 1) / 2;
+      } else {
+        col = gridCol / 2;
+      }
+    }
+  }
+
   pickedTile.row = row;
   pickedTile.col = col;
+}
+
+function crossProduct(aX: number, aY: number, bX: number, bY: number) {
+  return aX * bY - aY * bX;
 }
 
 const camMove = {x: 0, y: 0, camX: 0, camY: 0, moving: false};
