@@ -9,7 +9,6 @@ canvas.height = window.innerHeight;
 const ctx = canvas.getContext('2d', { alpha: false });
 
 let lastTimestamp: number;
-let left = 10, top = 10;
 const tickLength = Math.floor(1 / 30 * 1000); // 30 Hz
 
 function step(timestamp: number) {
@@ -23,28 +22,64 @@ function step(timestamp: number) {
   draw();
 }
 
+const fieldWidth = 100;
+const fieldHeight = 50;
+
+const field = (() => {
+  let result = Array(fieldHeight * fieldWidth);
+  for (let i = 0; i < result.length; ++i) {
+    result[i] = {
+      type: 'grass',
+    };
+  }
+  return result;
+})();
+
+let cameraX = -70;
+let cameraY = -50;
+
 function update() {
 
-  left += 1;
-  top += 1;
-
-  if (left > canvas.width - 50) {
-    left = 0;
-  }
-  if (top > canvas.height - 50) {
-    top = 0;
-  }
-
 }
+
+const tileHeight = 40;
+const tileHalfWidth = Math.floor(tileHeight * Math.sqrt(3) / 2);
+const tileHalfHeight = Math.floor(tileHeight / 2);
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = 'rgb(200, 0, 0)';
-  ctx.fillRect(Math.floor(left), Math.floor(top), 50, 50);
+  ctx.strokeStyle = 'rgb(50, 50, 50)';
+  ctx.lineWidth = 2;
 
-  ctx.fillStyle = 'rgba(0, 0, 200, 0.5)';
-  ctx.fillRect(30, 30, 50, 50);
+  for (let row = 0; row < fieldHeight; ++row) {
+    for (let col = 0; col < fieldWidth; ++col) {
+      drawTile(row, col);
+    }
+  }
+}
+
+function drawTile(row: number, col: number) {
+  const x = col * tileHalfWidth * 2 + (row % 2) * tileHalfWidth - cameraX;
+  const y = row * tileHalfHeight - cameraY;
+  const tile = field[row * fieldWidth + col];
+
+  ctx.fillStyle = (() => {
+    switch (tile.type) {
+      case 'grass': return '#b1e4a6';
+      default: return '#000';
+    }
+  })();
+
+  ctx.beginPath();
+  ctx.moveTo(x, y - tileHalfHeight);
+  ctx.lineTo(x + tileHalfWidth, y);
+  ctx.lineTo(x, y + tileHalfHeight);
+  ctx.lineTo(x - tileHalfWidth, y);
+
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
 
 }
 
