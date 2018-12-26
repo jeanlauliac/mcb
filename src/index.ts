@@ -1,5 +1,6 @@
 import pickTile from './pickTile';
 import {TILE_HALF_WIDTH, TILE_HALF_HEIGHT} from './constants';
+import * as Field from './Field';
 
 const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
@@ -24,19 +25,6 @@ function step(timestamp: number) {
 function requestStep() {
   window.requestAnimationFrame(step);
 }
-
-const fieldWidth = 29;
-const fieldHeight = 39;
-
-const field = (() => {
-  let result = Array(fieldHeight * fieldWidth);
-  for (let i = 0; i < result.length; ++i) {
-    result[i] = {
-      type: 'grass',
-    };
-  }
-  return result;
-})();
 
 let cameraX = 70;
 let cameraY = 50;
@@ -84,8 +72,8 @@ function draw() {
   ctx.strokeStyle = '#a0a0a0';
   ctx.lineWidth = 1;
 
-  for (let row = 0; row < fieldHeight; ++row) {
-    for (let col = 0; col < fieldWidth; ++col) {
+  for (let row = 0; row < Field.height; ++row) {
+    for (let col = 0; col < Field.width; ++col) {
       drawTile(row, col);
     }
   }
@@ -94,7 +82,7 @@ function draw() {
 function drawTile(row: number, col: number) {
   const x = col * TILE_HALF_WIDTH * 2 + (row % 2) * TILE_HALF_WIDTH - cameraX;
   const y = row * TILE_HALF_HEIGHT - cameraY;
-  const tile = field[row * fieldWidth + col];
+  const tile = Field.data[row * Field.width + col];
 
   ctx.fillStyle = (() => {
     switch (tile.type) {
