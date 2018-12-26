@@ -3,13 +3,9 @@ import findNeighbours, {Neighbours} from './findNeighbours';
 
 const {getTileIndex} = Field;
 
-const neighbours: Neighbours = {
-  data: [],
-  count: 0,
-};
-
+const neighbours: Neighbours = [];
 for (let i = 0; i < 4; ++i) {
-  neighbours.data.push({row: 0, col: 0});
+  neighbours.push({row: 0, col: 0});
 }
 
 export default function findShortestPath(
@@ -40,8 +36,11 @@ export default function findShortestPath(
     delete pendingIds[curTileIx];
     visited[curTileIx] = true;
     findNeighbours(neighbours, current.row, current.col);
-    for (let i = 0; i < neighbours.count; ++i) {
-      const neighbour = neighbours.data[i];
+    for (let i = 0; i < neighbours.length; ++i) {
+      const neighbour = neighbours[i];
+      if (neighbour.row < 0 || neighbour.row >= Field.height || neighbour.col < 0 || neighbour.col >= Field.width) {
+        continue;
+      }
       const neighbourIx = getTileIndex(neighbour);
       if (visited[neighbourIx] || Field.data[neighbourIx].type === 'water') {
         continue;

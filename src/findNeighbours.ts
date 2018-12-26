@@ -1,32 +1,24 @@
 import * as Field from './Field';
 import invariant from './invariant';
 
-export type Neighbours = {
-  data: Array<{row: number, col: number}>,
-  count: number,
-};
+export type Neighbours = Array<{row: number, col: number}>;
 
 export default function findNeighbours(result: Neighbours, row: number, col: number): void {
-  invariant(result.data.length >= 4);
-  result.count = 0;
+  invariant(result.length === 4);
   if (row % 2 === 0) {
-    addNeighbour(result, row - 1, col);
-    addNeighbour(result, row + 1, col);
-    addNeighbour(result, row + 1, col - 1);
-    addNeighbour(result, row - 1, col - 1);
+    setNeighbour(result, 0, row - 1, col);
+    setNeighbour(result, 1, row + 1, col);
+    setNeighbour(result, 2, row + 1, col - 1);
+    setNeighbour(result, 3, row - 1, col - 1);
   } else {
-    addNeighbour(result, row - 1, col + 1);
-    addNeighbour(result, row + 1, col + 1);
-    addNeighbour(result, row + 1, col);
-    addNeighbour(result, row - 1, col);
+    setNeighbour(result, 0, row - 1, col + 1);
+    setNeighbour(result, 1, row + 1, col + 1);
+    setNeighbour(result, 2, row + 1, col);
+    setNeighbour(result, 3, row - 1, col);
   }
 }
 
-function addNeighbour(result: Neighbours, row: number, col: number): void {
-  if (row < 0 || row >= Field.height || col < 0 || col >= Field.width) {
-    return;
-  }
-  result.data[result.count].row = row;
-  result.data[result.count].col = col;
-  ++result.count;
+function setNeighbour(result: Neighbours, slot: number, row: number, col: number): void {
+  result[slot].row = row;
+  result[slot].col = col;
 }

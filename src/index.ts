@@ -2,6 +2,7 @@ import pickTile from './pickTile';
 import {TILE_HALF_WIDTH, TILE_HALF_HEIGHT} from './constants';
 import * as Field from './Field';
 import findShortestPath from './findShortestPath';
+import {Neighbours} from './findNeighbours';
 
 const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
@@ -121,20 +122,70 @@ function handleDelete(ev: LocalMouseEvent) {
       return;
     }
   }
-  if (row !== roadSelectTile.row || col !== roadSelectTile.col) {
+  if (row !== deleteInfo.row || col !== deleteInfo.col) {
     deleteInfo.row = row;
     deleteInfo.col = col;
-    deleteInfo.tiles = findSquare(deleteInfo.fromRow, deleteInfo.fromCol, deleteInfo.row, deleteInfo.col);
+    deleteInfo.tiles = findSquare({row: deleteInfo.fromRow, col: deleteInfo.fromCol}, {row: deleteInfo.row, col: deleteInfo.col});
   }
   if ((ev.buttons & 1) === 0) {
     deleteInfo.isDeleting = false;
+    const tileIds: Array<string> = Object.keys(deleteInfo.tiles);
+    for (let i = 0; i < tileIds.length; ++i) {
+      const tile = Field.data[+tileIds[i]];
+      if (tile.type === 'road') {
+        tile.type = 'grass';
+      }
+    }
   }
 }
 
-function findSquare(fromRow: number, fromCol: number, toRow: number, toCol: number) {
+const neighbours: Neighbours = [];
+for (let i = 0; i < 4; ++i) {
+  neighbours.push({row: 0, col: 0});
+}
+
+type Coord = {row: number, col: number};
+
+const projFrom: Coord = {row: 0, col: 0};
+const projTo: Coord = {row: 0, col: 0};
+const unproj: Coord = {row: 0, col: 0};
+
+function findSquare(from: Coord, to: Coord) {
   const result: {[key: number]: true} = {};
+  projectCoords(projFrom, from);
+  projectCoords(projTo, to);
+  if (projFrom.row > projTo.row) {
+    const row = projTo.row;
+    projTo.row = projFrom.row;
+    projFrom.row = row;
+  }
+  if (projFrom.col > projTo.col) {
+    const col = projTo.col;
+    projTo.col = projFrom.col;
+    projFrom.col = col;
+  }
+
+  for (let row = projFrom.row; row <= projTo.row; ++row) {
+    for (let col = projFrom.col; col <= projTo.col; ++col) {
+      unprojectCoords(unproj, {row, col});
+      if (unproj.row < 0 || unproj.row >= Field.height || unproj.col < 0 || unproj.col >= Field.width) {
+        continue;
+      }
+      result[Field.getTileIndex(unproj)] = true;
+    }
+  }
 
   return result;
+}
+
+function projectCoords(proj: Coord, source: Coord): void {
+  proj.row = Math.floor((source.row + 1) / 2) + source.col;
+  proj.col = -Math.floor(source.row / 2) + source.col;
+}
+
+function unprojectCoords(unproj: Coord, source: Coord): void {
+  unproj.row = source.row - source.col;
+  unproj.col = Math.floor((source.row + source.col) / 2);
 }
 
 function draw() {
