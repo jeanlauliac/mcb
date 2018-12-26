@@ -1,4 +1,5 @@
-import foo from './foo';
+import pickTile from './pickTile';
+import {TILE_HALF_WIDTH, TILE_HALF_HEIGHT} from './constants';
 
 const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
@@ -12,14 +13,16 @@ let lastTimestamp: number;
 const tickLength = Math.floor(1 / 30 * 1000); // 30 Hz
 
 function step(timestamp: number) {
-  window.requestAnimationFrame(step);
-
   if (!lastTimestamp) lastTimestamp = timestamp;
   while (lastTimestamp < timestamp - tickLength) {
     update();
     lastTimestamp += tickLength;
   }
   draw();
+}
+
+function requestStep() {
+  window.requestAnimationFrame(step);
 }
 
 const fieldWidth = 29;
@@ -51,13 +54,13 @@ function update() {
   }
 }
 
-function handleRoadMove(ev: LocalMouseEvent) {
-  pickTile(ev.clientX, ev.clientY);
-}
+const roadSelectTile = {row: -1, col: -1};
 
-const tileHeight = 40;
-const tileHalfWidth = Math.floor(tileHeight * Math.sqrt(3) / 2);
-const tileHalfHeight = Math.floor(tileHeight / 2);
+function handleRoadMove(ev: LocalMouseEvent) {
+  const {row, col} = pickTile(ev.clientX + cameraX, ev.clientY + cameraY);
+  roadSelectTile.row = row;
+  roadSelectTile.col = col;
+}
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -73,8 +76,8 @@ function draw() {
 }
 
 function drawTile(row: number, col: number) {
-  const x = col * tileHalfWidth * 2 + (row % 2) * tileHalfWidth - cameraX;
-  const y = row * tileHalfHeight - cameraY;
+  const x = col * TILE_HALF_WIDTH * 2 + (row % 2) * TILE_HALF_WIDTH - cameraX;
+  const y = row * TILE_HALF_HEIGHT - cameraY;
   const tile = field[row * fieldWidth + col];
 
   ctx.fillStyle = (() => {
@@ -85,78 +88,20 @@ function drawTile(row: number, col: number) {
   })();
 
   ctx.beginPath();
-  ctx.moveTo(x, y - tileHalfHeight);
-  ctx.lineTo(x + tileHalfWidth, y);
-  ctx.lineTo(x, y + tileHalfHeight);
-  ctx.lineTo(x - tileHalfWidth, y);
+  ctx.moveTo(x, y - TILE_HALF_HEIGHT);
+  ctx.lineTo(x + TILE_HALF_WIDTH, y);
+  ctx.lineTo(x, y + TILE_HALF_HEIGHT);
+  ctx.lineTo(x - TILE_HALF_WIDTH, y);
 
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
 
-  if (cursorMode === 'road' && pickedTile.row === row && pickedTile.col === col) {
+  if (cursorMode === 'road' && roadSelectTile.row === row && roadSelectTile.col === col) {
     ctx.fillStyle = 'rgba(0, 255, 0, 100)';
     ctx.fill();
   }
 
-}
-
-const pickedTile = {row: 0, col: 0};
-
-function pickTile(x: number, y: number) {
-  let fieldX = x + cameraX;
-  let fieldY = y + cameraY;
-  let gridRow = Math.floor(fieldY / tileHalfHeight);
-  let gridCol = Math.floor(fieldX / tileHalfWidth);
-  let localX = fieldX % tileHalfWidth;
-  let localY = fieldY % tileHalfHeight;
-  let row = 0;
-  let col = 0;
-  if ((gridRow + gridCol) % 2 === 0) {
-    // Bottom-left to top-right split
-    let relY = localY - tileHalfHeight;
-    if (crossProduct(tileHalfWidth, -tileHalfHeight, localX, relY) < 0) {
-      // top-left corner
-      row = gridRow;
-      if (gridRow % 2 === 0) {
-        col = gridCol / 2;
-      } else {
-        col = (gridCol - 1) / 2;
-      }
-    } else {
-      // bottom-right corner
-      row = gridRow + 1;
-      if (gridRow % 2 === 0) {
-        col = gridCol / 2;
-      } else {
-        col = (gridCol - 1) / 2 + 1;
-      }
-    }
-  } else {
-    if (crossProduct(tileHalfWidth, tileHalfHeight, localX, localY) < 0) {
-      // top-right corner
-      row = gridRow;
-      if (gridRow % 2 === 0) {
-        col = (gridCol - 1) / 2 + 1;
-      } else {
-        col = gridCol / 2;
-      }
-    } else {
-      row = gridRow + 1;
-      if (gridRow % 2 === 0) {
-        col = (gridCol - 1) / 2;
-      } else {
-        col = gridCol / 2;
-      }
-    }
-  }
-
-  pickedTile.row = row;
-  pickedTile.col = col;
-}
-
-function crossProduct(aX: number, aY: number, bX: number, bY: number) {
-  return aX * bY - aY * bX;
 }
 
 const camMove = {x: 0, y: 0, camX: 0, camY: 0, moving: false};
@@ -199,4 +144,5 @@ window.addEventListener('keydown', ev => {
   }
 });
 
-window.requestAnimationFrame(step);
+// window.requestAnimationFrame(step);
+setInterval(requestStep, 30);
