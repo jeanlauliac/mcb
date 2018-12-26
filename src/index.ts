@@ -90,12 +90,20 @@ function handleRoadMove(ev: LocalMouseEvent) {
   }
 }
 
-const deleteInfo = {
+const deleteInfo: {
+  isDeleting: boolean,
+  row: number,
+  col: number,
+  fromRow: number,
+  fromCol: number,
+  tiles: {[key: number]: true},
+} = {
   isDeleting: false,
   row: -1,
   col: -1,
   fromRow: -1,
   fromCol: -1,
+  tiles: {},
 };
 
 function handleDelete(ev: LocalMouseEvent) {
@@ -105,15 +113,18 @@ function handleDelete(ev: LocalMouseEvent) {
       deleteInfo.isDeleting = true;
       deleteInfo.fromRow = row;
       deleteInfo.fromCol = col;
+      deleteInfo.row = -1;
+      deleteInfo.col = -1;
+    } else {
+      deleteInfo.row = row;
+      deleteInfo.col = col;
+      return;
     }
-    deleteInfo.row = row;
-    deleteInfo.col = col;
-    return;
   }
   if (row !== roadSelectTile.row || col !== roadSelectTile.col) {
     deleteInfo.row = row;
     deleteInfo.col = col;
-    // roadSelectTile.path = findSquare(deleteInfo.fromRow, deleteInfo.fromCol, deleteInfo.row, deleteInfo.col);
+    deleteInfo.tiles = findSquare(deleteInfo.fromRow, deleteInfo.fromCol, deleteInfo.row, deleteInfo.col);
   }
   if ((ev.buttons & 1) === 0) {
     deleteInfo.isDeleting = false;
@@ -121,7 +132,23 @@ function handleDelete(ev: LocalMouseEvent) {
 }
 
 function findSquare(fromRow: number, fromCol: number, toRow: number, toCol: number) {
-
+  const result: {[key: number]: true} = {};
+  if (fromRow > toRow) {
+    const row = fromRow;
+    fromRow = toRow;
+    toRow = row;
+  }
+  if (fromCol > toCol) {
+    const col = fromCol;
+    fromCol = toCol;
+    toCol = col;
+  }
+  for (let row = fromRow; row < toRow; ++row) {
+    for (let col = fromCol; col < toCol; ++col) {
+      result[Field.getTileIndex({row, col})] = true;
+    }
+  }
+  return result;
 }
 
 function draw() {
@@ -169,7 +196,10 @@ function drawTile(row: number, col: number) {
     ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
     ctx.fill();
   }
-  if (cursorMode === 'delete' && deleteInfo.row === row && deleteInfo.col === col) {
+  if (
+    cursorMode === 'delete' && deleteInfo.row === row && deleteInfo.col === col ||
+    deleteInfo.isDeleting && deleteInfo.tiles[tileIx]
+  ) {
     ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
     ctx.fill();
   }
