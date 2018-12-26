@@ -54,12 +54,28 @@ function update() {
   }
 }
 
-const roadSelectTile = {row: -1, col: -1};
+const roadSelectTile = {row: -1, col: -1, hasDest: false, destRow: 0, destCol: 0};
 
 function handleRoadMove(ev: LocalMouseEvent) {
   const {row, col} = pickTile(ev.clientX + cameraX, ev.clientY + cameraY);
-  roadSelectTile.row = row;
-  roadSelectTile.col = col;
+  if (!roadSelectTile.hasDest) {
+    if ((ev.buttons & 1) !== 0) {
+      roadSelectTile.hasDest = true;
+      roadSelectTile.destRow = row;
+      roadSelectTile.destCol = col;
+      return;
+    }
+    roadSelectTile.row = row;
+    roadSelectTile.col = col;
+    return;
+  }
+  roadSelectTile.destRow = row;
+  roadSelectTile.destCol = col;
+  if ((ev.buttons & 1) === 0) {
+    roadSelectTile.hasDest = false;
+    roadSelectTile.row = row;
+    roadSelectTile.col = col;
+  }
 }
 
 function draw() {
@@ -108,11 +124,15 @@ const camMove = {x: 0, y: 0, camX: 0, camY: 0, moving: false};
 
 type LocalMouseEvent = {clientX: number, clientY: number, buttons: number};
 
-canvas.addEventListener('mousemove', ev => {
+function handleMouseEvent(ev: MouseEvent) {
   lastMouseEv.clientX = ev.clientX;
   lastMouseEv.clientY = ev.clientY;
   lastMouseEv.buttons = ev.buttons;
-});
+}
+
+canvas.addEventListener('mousemove', handleMouseEvent);
+canvas.addEventListener('mousedown', handleMouseEvent);
+canvas.addEventListener('mouseup', handleMouseEvent);
 
 function handleCameraMove(ev: LocalMouseEvent) {
   if (!camMove.moving) {
