@@ -133,21 +133,7 @@ function handleDelete(ev: LocalMouseEvent) {
 
 function findSquare(fromRow: number, fromCol: number, toRow: number, toCol: number) {
   const result: {[key: number]: true} = {};
-  if (fromRow > toRow) {
-    const row = fromRow;
-    fromRow = toRow;
-    toRow = row;
-  }
-  if (fromCol > toCol) {
-    const col = fromCol;
-    fromCol = toCol;
-    toCol = col;
-  }
-  for (let row = fromRow; row < toRow; ++row) {
-    for (let col = fromCol; col < toCol; ++col) {
-      result[Field.getTileIndex({row, col})] = true;
-    }
-  }
+
   return result;
 }
 

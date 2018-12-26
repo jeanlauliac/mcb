@@ -1,12 +1,16 @@
 import * as Field from './Field';
+import findNeighbours, {Neighbours} from './findNeighbours';
 
 const {getTileIndex} = Field;
 
-const neighbours: Array<{row: number, col: number}> = [];
+const neighbours: Neighbours = {
+  data: [],
+  count: 0,
+};
+
 for (let i = 0; i < 4; ++i) {
-  neighbours.push({row: 0, col: 0});
+  neighbours.data.push({row: 0, col: 0});
 }
-let neighbourCount = 0;
 
 export default function findShortestPath(
   fromRow: number,
@@ -35,9 +39,9 @@ export default function findShortestPath(
     const curTileIx = getTileIndex(current);
     delete pendingIds[curTileIx];
     visited[curTileIx] = true;
-    findNeighbours(current.row, current.col);
-    for (let i = 0; i < neighbourCount; ++i) {
-      const neighbour = neighbours[i];
+    findNeighbours(neighbours, current.row, current.col);
+    for (let i = 0; i < neighbours.count; ++i) {
+      const neighbour = neighbours.data[i];
       const neighbourIx = getTileIndex(neighbour);
       if (visited[neighbourIx] || Field.data[neighbourIx].type === 'water') {
         continue;
@@ -59,28 +63,4 @@ export default function findShortestPath(
     result.push({row: current.row, col: current.col});
   }
   return result.reverse();
-}
-
-function findNeighbours(row: number, col: number) {
-  neighbourCount = 0;
-  if (row % 2 === 0) {
-    addNeighbour(row - 1, col);
-    addNeighbour(row + 1, col);
-    addNeighbour(row + 1, col - 1);
-    addNeighbour(row - 1, col - 1);
-  } else {
-    addNeighbour(row - 1, col + 1);
-    addNeighbour(row + 1, col + 1);
-    addNeighbour(row + 1, col);
-    addNeighbour(row - 1, col);
-  }
-}
-
-function addNeighbour(row: number, col: number) {
-  if (row < 0 || row >= Field.height || col < 0 || col >= Field.width) {
-    return;
-  }
-  neighbours[neighbourCount].row = row;
-  neighbours[neighbourCount].col = col;
-  ++neighbourCount;
 }
