@@ -108,6 +108,7 @@ function drawTile(row: number, col: number) {
     }
     switch (tile.type) {
       case 'grass': return '#b1e4a6';
+      case 'water': return '#2d5cab';
       default: return '#000';
     }
   })();
