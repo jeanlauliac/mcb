@@ -21,6 +21,9 @@ export default function findShortestPath(
   const pendingIds: {[key: number]: true} = {};
   let current = pending[0];
   pendingIds[getTileIndex(current)] = true;
+  if (Field.data[getTileIndex(current)].type === 'water') {
+    return [];
+  }
   const scores: {[key: number]: number} = {};
   scores[getTileIndex(pending[0])] = 0;
   while (pending.length > 0) {

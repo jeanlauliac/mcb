@@ -9,7 +9,7 @@ document.body.appendChild(canvas);
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const ctx = canvas.getContext('2d', { alpha: false });
+const ctx = canvas.getContext('2d');
 
 let lastTimestamp: number;
 const tickLength = Math.floor(1 / 30 * 1000); // 30 Hz
@@ -40,6 +40,9 @@ function update() {
   case 'road':
     handleRoadMove(lastMouseEv);
     break;
+  case 'delete':
+    handleDelete(lastMouseEv);
+    break;
   }
 }
 
@@ -60,12 +63,14 @@ function handleRoadMove(ev: LocalMouseEvent) {
       roadSelectTile.isBuilding = true;
       roadSelectTile.fromRow = row;
       roadSelectTile.fromCol = col;
+      roadSelectTile.row = -1;
+      roadSelectTile.col = -1;
       roadSelectTile.path = {};
+    } else {
+      roadSelectTile.row = row;
+      roadSelectTile.col = col;
       return;
     }
-    roadSelectTile.row = row;
-    roadSelectTile.col = col;
-    return;
   }
   if (row !== roadSelectTile.row || col !== roadSelectTile.col) {
     roadSelectTile.row = row;
@@ -83,6 +88,40 @@ function handleRoadMove(ev: LocalMouseEvent) {
       Field.data[+tileIds[i]].type = 'road';
     }
   }
+}
+
+const deleteInfo = {
+  isDeleting: false,
+  row: -1,
+  col: -1,
+  fromRow: -1,
+  fromCol: -1,
+};
+
+function handleDelete(ev: LocalMouseEvent) {
+  const {row, col} = pickTile(ev.clientX + cameraX, ev.clientY + cameraY);
+  if (!deleteInfo.isDeleting) {
+    if ((ev.buttons & 1) !== 0) {
+      deleteInfo.isDeleting = true;
+      deleteInfo.fromRow = row;
+      deleteInfo.fromCol = col;
+    }
+    deleteInfo.row = row;
+    deleteInfo.col = col;
+    return;
+  }
+  if (row !== roadSelectTile.row || col !== roadSelectTile.col) {
+    deleteInfo.row = row;
+    deleteInfo.col = col;
+    // roadSelectTile.path = findSquare(deleteInfo.fromRow, deleteInfo.fromCol, deleteInfo.row, deleteInfo.col);
+  }
+  if ((ev.buttons & 1) === 0) {
+    deleteInfo.isDeleting = false;
+  }
+}
+
+function findSquare(fromRow: number, fromCol: number, toRow: number, toCol: number) {
+
 }
 
 function draw() {
@@ -127,7 +166,11 @@ function drawTile(row: number, col: number) {
   ctx.stroke();
 
   if (cursorMode === 'road' && roadSelectTile.row === row && roadSelectTile.col === col) {
-    ctx.fillStyle = 'rgba(0, 255, 0, 100)';
+    ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
+    ctx.fill();
+  }
+  if (cursorMode === 'delete' && deleteInfo.row === row && deleteInfo.col === col) {
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
     ctx.fill();
   }
 
@@ -170,6 +213,9 @@ window.addEventListener('keydown', ev => {
   switch (ev.key) {
     case 'r':
       cursorMode = 'road';
+      break;
+    case 'd':
+      cursorMode = 'delete';
       break;
     case 'Escape':
       cursorMode = 'move';
