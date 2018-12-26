@@ -1,6 +1,7 @@
 import pickTile from './pickTile';
 import {TILE_HALF_WIDTH, TILE_HALF_HEIGHT} from './constants';
 import * as Field from './Field';
+import findShortestPath from './findShortestPath';
 
 const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
@@ -42,25 +43,41 @@ function update() {
   }
 }
 
-const roadSelectTile = {row: -1, col: -1, hasDest: false, destRow: 0, destCol: 0};
+const roadSelectTile: {
+  row: number,
+  col: number,
+  isBuilding: boolean,
+  fromRow: number,
+  fromCol: number,
+  path: {[key: number]: true},
+} = {row: -1, col: -1, isBuilding: false,
+  fromRow: -1, fromCol: -1, path: {}};
 
 function handleRoadMove(ev: LocalMouseEvent) {
   const {row, col} = pickTile(ev.clientX + cameraX, ev.clientY + cameraY);
-  if (!roadSelectTile.hasDest) {
+  if (!roadSelectTile.isBuilding) {
     if ((ev.buttons & 1) !== 0) {
-      roadSelectTile.hasDest = true;
-      roadSelectTile.destRow = row;
-      roadSelectTile.destCol = col;
+      roadSelectTile.isBuilding = true;
+      roadSelectTile.fromRow = row;
+      roadSelectTile.fromCol = col;
+      roadSelectTile.path = {};
       return;
     }
     roadSelectTile.row = row;
     roadSelectTile.col = col;
     return;
   }
-  roadSelectTile.destRow = row;
-  roadSelectTile.destCol = col;
+  if (row !== roadSelectTile.row || col !== roadSelectTile.col) {
+    roadSelectTile.row = row;
+    roadSelectTile.col = col;
+    const path = findShortestPath(roadSelectTile.fromRow, roadSelectTile.fromCol, roadSelectTile.row, roadSelectTile.col);
+    roadSelectTile.path = {};
+    for (let i = 0; i < path.length; ++i) {
+      roadSelectTile.path[Field.getTileIndex(path[i])] = true;
+    }
+  }
   if ((ev.buttons & 1) === 0) {
-    roadSelectTile.hasDest = false;
+    roadSelectTile.isBuilding = false;
     roadSelectTile.row = row;
     roadSelectTile.col = col;
   }
@@ -82,9 +99,13 @@ function draw() {
 function drawTile(row: number, col: number) {
   const x = col * TILE_HALF_WIDTH * 2 + (row % 2) * TILE_HALF_WIDTH - cameraX;
   const y = row * TILE_HALF_HEIGHT - cameraY;
-  const tile = Field.data[row * Field.width + col];
+  const tileIx = row * Field.width + col;
+  const tile = Field.data[tileIx];
 
   ctx.fillStyle = (() => {
+    if (roadSelectTile.isBuilding && roadSelectTile.path[tileIx]) {
+      return '#f5f5d2';
+    }
     switch (tile.type) {
       case 'grass': return '#b1e4a6';
       default: return '#000';

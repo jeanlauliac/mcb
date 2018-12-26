@@ -11,3 +11,7 @@ export const data = (() => {
   }
   return result;
 })();
+
+export function getTileIndex(tile: {row: number, col: number}) {
+  return tile.row * width + tile.col;
+}
