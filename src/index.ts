@@ -78,8 +78,10 @@ function handleRoadMove(ev: LocalMouseEvent) {
   }
   if ((ev.buttons & 1) === 0) {
     roadSelectTile.isBuilding = false;
-    roadSelectTile.row = row;
-    roadSelectTile.col = col;
+    const tileIds: Array<string> = Object.keys(roadSelectTile.path);
+    for (let i = 0; i < tileIds.length; ++i) {
+      Field.data[+tileIds[i]].type = 'road';
+    }
   }
 }
 
@@ -109,6 +111,7 @@ function drawTile(row: number, col: number) {
     switch (tile.type) {
       case 'grass': return '#b1e4a6';
       case 'water': return '#2d5cab';
+      case 'road': return '#f5f5d2';
       default: return '#000';
     }
   })();

@@ -36,7 +36,7 @@ export default function findShortestPath(
     for (let i = 0; i < neighbourCount; ++i) {
       const neighbour = neighbours[i];
       const neighbourIx = getTileIndex(neighbour);
-      if (visited[neighbourIx] || Field.data[neighbourIx].type !== 'grass') {
+      if (visited[neighbourIx] || Field.data[neighbourIx].type === 'water') {
         continue;
       }
       const {row, col} = neighbour;
