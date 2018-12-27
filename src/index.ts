@@ -16,17 +16,18 @@ const ctx = canvas.getContext('2d');
 let lastTimestamp: number;
 const tickLength = Math.floor(1 / 30 * 1000); // 30 Hz
 
+function requestStep() {
+  window.requestAnimationFrame(step);
+}
+
 function step(timestamp: number) {
+  setTimeout(requestStep, tickLength);
   if (!lastTimestamp) lastTimestamp = timestamp;
   while (lastTimestamp < timestamp - tickLength) {
     update();
     lastTimestamp += tickLength;
   }
   draw();
-}
-
-function requestStep() {
-  window.requestAnimationFrame(step);
 }
 
 let cameraX = 70;
@@ -302,5 +303,4 @@ window.addEventListener('keydown', ev => {
   }
 });
 
-// window.requestAnimationFrame(step);
-setInterval(requestStep, 30);
+setTimeout(requestStep, 30);
