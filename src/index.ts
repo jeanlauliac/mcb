@@ -278,12 +278,12 @@ function handleCameraMove(ev: LocalMouseEvent) {
   }
 
   cameraX = camMove.camX + camMove.x - ev.clientX;
-  if (cameraX < TILE_HALF_WIDTH) cameraX = TILE_HALF_WIDTH;
+  if (cameraX < 0) cameraX = 0;
   const camMaxX = (Field.width - 1) * TILE_HALF_WIDTH * 2 - canvas.width;
   if (cameraX > camMaxX) cameraX = camMaxX;
 
   cameraY = camMove.camY + camMove.y - ev.clientY;
-  if (cameraY < TILE_HALF_HEIGHT) cameraY = TILE_HALF_HEIGHT;
+  if (cameraY < 0) cameraY = 0;
   const camMaxY = (Field.height - 1) * TILE_HALF_HEIGHT - canvas.height;
   if (cameraY > camMaxY) cameraY = camMaxY;
 }
