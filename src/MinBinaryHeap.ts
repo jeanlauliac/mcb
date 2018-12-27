@@ -16,6 +16,18 @@ export default class MinBinaryHeap<Value> {
     }
   }
 
+  clear() {
+    this._size = 0;
+  }
+
+  size() {
+    return this._size;
+  }
+
+  isEmpty() {
+    return this._size === 0;
+  }
+
   /**
    * Push the specified key into the heap and returns the corresponding value,
    * which can be mutated accordingly. The value is returned rather than

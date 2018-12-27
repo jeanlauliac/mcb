@@ -14,3 +14,8 @@ export function unproject(unproj: Coords, source: Coords): void {
 export function createCoords(): Coords {
   return {row: -1, col: -1};
 }
+
+export function copyCoords(copy: Coords, source: Coords): void {
+  copy.row = source.row;
+  copy.col = source.col;
+}
