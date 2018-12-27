@@ -3,7 +3,7 @@ import {TILE_HALF_WIDTH, TILE_HALF_HEIGHT} from './constants';
 import * as Field from './Field';
 import findShortestPath from './findShortestPath';
 import {Neighbours} from './findNeighbours';
-import {Coords, project, unproject} from './Coords';
+import {Coords, project, unproject, createCoords} from './Coords';
 
 const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
@@ -58,8 +58,11 @@ const roadSelectTile: {
 } = {row: -1, col: -1, isBuilding: false,
   fromRow: -1, fromCol: -1, path: {}};
 
+const pickedTile = {row: 0, col: 0};
+
 function handleRoadMove(ev: LocalMouseEvent) {
-  const {row, col} = pickTile(ev.clientX + cameraX, ev.clientY + cameraY);
+  pickTile(pickedTile, ev.clientX + cameraX, ev.clientY + cameraY);
+  const {row, col} = pickedTile;
   if (!roadSelectTile.isBuilding) {
     if ((ev.buttons & 1) !== 0) {
       roadSelectTile.isBuilding = true;
@@ -109,7 +112,8 @@ const deleteInfo: {
 };
 
 function handleDelete(ev: LocalMouseEvent) {
-  const {row, col} = pickTile(ev.clientX + cameraX, ev.clientY + cameraY);
+  pickTile(pickedTile, ev.clientX + cameraX, ev.clientY + cameraY);
+  const {row, col} = pickedTile;
   if (!deleteInfo.isDeleting) {
     if ((ev.buttons & 1) !== 0) {
       deleteInfo.isDeleting = true;
@@ -177,14 +181,25 @@ function findSquare(from: Coords, to: Coords) {
   return result;
 }
 
+const topLeftCoords = createCoords();
+const bottomRightCoords = createCoords();
+
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   ctx.strokeStyle = '#a0a0a0';
   ctx.lineWidth = 1;
 
-  for (let row = 0; row < Field.height; ++row) {
-    for (let col = 0; col < Field.width; ++col) {
+  pickTile(topLeftCoords, cameraX, cameraY);
+  pickTile(
+    bottomRightCoords,
+    cameraX + canvas.width,
+    cameraY + canvas.height,
+  );
+  const maxRow = Math.min(bottomRightCoords.row + 2, Field.height);
+  const maxCol = Math.min(bottomRightCoords.col + 2, Field.width);
+
+  for (let row = Math.max(0, topLeftCoords.row - 1); row < maxRow; ++row) {
+    for (let col = Math.max(0, topLeftCoords.col - 1); col < maxCol; ++col) {
       drawTile(row, col);
     }
   }
@@ -261,8 +276,16 @@ function handleCameraMove(ev: LocalMouseEvent) {
     camMove.moving = false;
     return;
   }
+
   cameraX = camMove.camX + camMove.x - ev.clientX;
+  if (cameraX < TILE_HALF_WIDTH) cameraX = TILE_HALF_WIDTH;
+  const camMaxX = (Field.width - 1) * TILE_HALF_WIDTH * 2 - canvas.width;
+  if (cameraX > camMaxX) cameraX = camMaxX;
+
   cameraY = camMove.camY + camMove.y - ev.clientY;
+  if (cameraY < TILE_HALF_HEIGHT) cameraY = TILE_HALF_HEIGHT;
+  const camMaxY = (Field.height - 1) * TILE_HALF_HEIGHT - canvas.height;
+  if (cameraY > camMaxY) cameraY = camMaxY;
 }
 
 window.addEventListener('keydown', ev => {

@@ -10,3 +10,7 @@ export function unproject(unproj: Coords, source: Coords): void {
   unproj.row = source.row - source.col;
   unproj.col = Math.floor((source.row + source.col) / 2);
 }
+
+export function createCoords(): Coords {
+  return {row: -1, col: -1};
+}

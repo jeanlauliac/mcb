@@ -1,8 +1,7 @@
 import {TILE_HALF_WIDTH, TILE_HALF_HEIGHT} from './constants';
+import {Coords} from './Coords';
 
-const pickedTile = {row: 0, col: 0};
-
-export default function pickTile(fieldX: number, fieldY: number) {
+export default function pickTile(pickedCoords: Coords, fieldX: number, fieldY: number): void {
   let gridRow = Math.floor(fieldY / TILE_HALF_HEIGHT);
   let gridCol = Math.floor(fieldX / TILE_HALF_WIDTH);
   let localX = fieldX % TILE_HALF_WIDTH;
@@ -48,9 +47,8 @@ export default function pickTile(fieldX: number, fieldY: number) {
     }
   }
 
-  pickedTile.row = row;
-  pickedTile.col = col;
-  return pickedTile;
+  pickedCoords.row = row;
+  pickedCoords.col = col;
 }
 
 function crossProduct(aX: number, aY: number, bX: number, bY: number) {

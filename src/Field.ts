@@ -1,6 +1,6 @@
 
-export const width = 29;
-export const height = 39;
+export const width = 40;
+export const height = 60;
 
 export const data = (() => {
   let result = Array(height * width);
