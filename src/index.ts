@@ -3,6 +3,7 @@ import {TILE_HALF_WIDTH, TILE_HALF_HEIGHT} from './constants';
 import * as Field from './Field';
 import findShortestPath from './findShortestPath';
 import {Neighbours} from './findNeighbours';
+import {Coords, project, unproject} from './Coords';
 
 const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
@@ -144,16 +145,14 @@ for (let i = 0; i < 4; ++i) {
   neighbours.push({row: 0, col: 0});
 }
 
-type Coord = {row: number, col: number};
+const projFrom: Coords = {row: 0, col: 0};
+const projTo: Coords = {row: 0, col: 0};
+const unproj: Coords = {row: 0, col: 0};
 
-const projFrom: Coord = {row: 0, col: 0};
-const projTo: Coord = {row: 0, col: 0};
-const unproj: Coord = {row: 0, col: 0};
-
-function findSquare(from: Coord, to: Coord) {
+function findSquare(from: Coords, to: Coords) {
   const result: {[key: number]: true} = {};
-  projectCoords(projFrom, from);
-  projectCoords(projTo, to);
+  project(projFrom, from);
+  project(projTo, to);
   if (projFrom.row > projTo.row) {
     const row = projTo.row;
     projTo.row = projFrom.row;
@@ -167,7 +166,7 @@ function findSquare(from: Coord, to: Coord) {
 
   for (let row = projFrom.row; row <= projTo.row; ++row) {
     for (let col = projFrom.col; col <= projTo.col; ++col) {
-      unprojectCoords(unproj, {row, col});
+      unproject(unproj, {row, col});
       if (unproj.row < 0 || unproj.row >= Field.height || unproj.col < 0 || unproj.col >= Field.width) {
         continue;
       }
@@ -176,16 +175,6 @@ function findSquare(from: Coord, to: Coord) {
   }
 
   return result;
-}
-
-function projectCoords(proj: Coord, source: Coord): void {
-  proj.row = Math.floor((source.row + 1) / 2) + source.col;
-  proj.col = -Math.floor(source.row / 2) + source.col;
-}
-
-function unprojectCoords(unproj: Coord, source: Coord): void {
-  unproj.row = source.row - source.col;
-  unproj.col = Math.floor((source.row + source.col) / 2);
 }
 
 function draw() {
