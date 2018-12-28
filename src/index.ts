@@ -34,8 +34,10 @@ let cameraX = 70;
 let cameraY = 50;
 let cursorMode = 'move';
 let lastMouseEv = {clientX: 0, clientY: 0, buttons: 0};
+let hasMouseEv = false;
 
 function update() {
+  if (!hasMouseEv) return;
   switch (cursorMode) {
   case 'move':
     handleCameraMove(lastMouseEv);
@@ -43,10 +45,14 @@ function update() {
   case 'road':
     handleRoadMove(lastMouseEv);
     break;
+  case 'farm':
+    handleFarmMove(lastMouseEv);
+    break;
   case 'delete':
     handleDelete(lastMouseEv);
     break;
   }
+  hasMouseEv = false;
 }
 
 const roadSelectTile: {
@@ -68,7 +74,6 @@ for (let i = 0; i < 512; ++i) {
 
 function handleRoadMove(ev: LocalMouseEvent) {
   pickTile(pickedTile, ev.clientX + cameraX, ev.clientY + cameraY);
-  const {row, col} = pickedTile;
   if (!roadSelectTile.isBuilding) {
     if ((ev.buttons & 1) !== 0) {
       roadSelectTile.isBuilding = true;
@@ -96,6 +101,13 @@ function handleRoadMove(ev: LocalMouseEvent) {
       Field.data[+tileIds[i]].type = 'road';
     }
   }
+}
+
+const farmCoords = createCoords();
+
+function handleFarmMove(ev: LocalMouseEvent) {
+  pickTile(pickedTile, ev.clientX + cameraX, ev.clientY + cameraY);
+  copyCoords(farmCoords, pickedTile);
 }
 
 const deleteInfo: {
@@ -187,6 +199,9 @@ function findSquare(from: Coords, to: Coords) {
 const topLeftCoords = createCoords();
 const bottomRightCoords = createCoords();
 
+type CanvasCoords = {x: number, y: number};
+const canvasCoords: CanvasCoords = {x: 0, y: 0};
+
 function draw() {
 
   ctx.strokeStyle = '#a0a0a0';
@@ -206,11 +221,23 @@ function draw() {
       drawTile(row, col);
     }
   }
+
+  if (cursorMode === 'farm') {
+    project(projFrom, farmCoords);
+    ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
+    for (projTo.row = projFrom.row - 1; projTo.row < projFrom.row + 2; ++projTo.row) {
+      for (projTo.col = projFrom.col - 1; projTo.col < projFrom.col + 2; ++projTo.col) {
+        unproject(unproj, projTo);
+        getCanvasCoords(canvasCoords, unproj);
+        buildTilePath(canvasCoords);
+        ctx.fill();
+      }
+    }
+  }
 }
 
 function drawTile(row: number, col: number) {
-  const x = col * TILE_HALF_WIDTH * 2 + (row % 2) * TILE_HALF_WIDTH - cameraX;
-  const y = row * TILE_HALF_HEIGHT - cameraY;
+  getCanvasCoords(canvasCoords, {row, col});
   const tileIx = row * Field.width + col;
   const tile = Field.data[tileIx];
 
@@ -226,13 +253,7 @@ function drawTile(row: number, col: number) {
     }
   })();
 
-  ctx.beginPath();
-  ctx.moveTo(x, y - TILE_HALF_HEIGHT);
-  ctx.lineTo(x + TILE_HALF_WIDTH, y);
-  ctx.lineTo(x, y + TILE_HALF_HEIGHT);
-  ctx.lineTo(x - TILE_HALF_WIDTH, y);
-
-  ctx.closePath();
+  buildTilePath(canvasCoords);
   ctx.fill();
   ctx.stroke();
 
@@ -250,6 +271,22 @@ function drawTile(row: number, col: number) {
 
 }
 
+function getCanvasCoords(result: CanvasCoords, coords: Coords) {
+  const {row, col} = coords;
+  result.x = col * TILE_HALF_WIDTH * 2 + (row % 2) * TILE_HALF_WIDTH - cameraX;
+  result.y = row * TILE_HALF_HEIGHT - cameraY;
+}
+
+function buildTilePath(coords: CanvasCoords): void {
+  const {x, y} = coords;
+  ctx.beginPath();
+  ctx.moveTo(x, y - TILE_HALF_HEIGHT);
+  ctx.lineTo(x + TILE_HALF_WIDTH, y);
+  ctx.lineTo(x, y + TILE_HALF_HEIGHT);
+  ctx.lineTo(x - TILE_HALF_WIDTH, y);
+  ctx.closePath();
+}
+
 const camMove = {x: 0, y: 0, camX: 0, camY: 0, moving: false};
 
 type LocalMouseEvent = {clientX: number, clientY: number, buttons: number};
@@ -258,6 +295,7 @@ function handleMouseEvent(ev: MouseEvent) {
   lastMouseEv.clientX = ev.clientX;
   lastMouseEv.clientY = ev.clientY;
   lastMouseEv.buttons = ev.buttons;
+  hasMouseEv = true;
 }
 
 canvas.addEventListener('mousemove', handleMouseEvent);
@@ -298,6 +336,9 @@ window.addEventListener('keydown', ev => {
       break;
     case 'd':
       cursorMode = 'delete';
+      break;
+    case 'f':
+      cursorMode = 'farm';
       break;
     case 'Escape':
       cursorMode = 'move';
