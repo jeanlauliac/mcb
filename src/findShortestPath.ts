@@ -21,7 +21,6 @@ export default function findShortestPath(
   toCol: number,
 ) {
   let found = false;
-  const visited: {[key: number]: true} = {};
   const cameFrom: {[key: number]: {row: number, col: number}} = {};
   pending.clear();
   const pendingIds: {[key: number]: true} = {};
@@ -46,7 +45,7 @@ export default function findShortestPath(
     }
     const curTileIx = getTileIndex(current);
     delete pendingIds[curTileIx];
-    // visited[curTileIx] = true;
+
     findNeighbours(neighbours, current.row, current.col);
     for (let i = 0; i < neighbours.length; ++i) {
       const neighbour = neighbours[i];
@@ -54,7 +53,7 @@ export default function findShortestPath(
         continue;
       }
       const neighbourIx = getTileIndex(neighbour);
-      if (visited[neighbourIx] || Field.data[neighbourIx].type === 'water') {
+      if (Field.data[neighbourIx].type === 'water') {
         continue;
       }
       const {row, col} = neighbour;
@@ -75,7 +74,6 @@ export default function findShortestPath(
     }
   }
   if (!found) return [];
-  debugger;
 
   const result = [{row: current.row, col: current.col}];
   while (cameFrom[getTileIndex(current)] != null) {
