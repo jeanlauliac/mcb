@@ -19,3 +19,7 @@ export function copyCoords(copy: Coords, source: Coords): void {
   copy.row = source.row;
   copy.col = source.col;
 }
+
+export function areCoordsEqual(a: Coords, b: Coords): boolean {
+  return a.row === b.row && a.col === b.col;
+}

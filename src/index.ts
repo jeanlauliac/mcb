@@ -3,7 +3,7 @@ import {TILE_HALF_WIDTH, TILE_HALF_HEIGHT} from './constants';
 import * as Field from './Field';
 import findShortestPath, {Path} from './findShortestPath';
 import {Neighbours} from './findNeighbours';
-import {Coords, project, unproject, createCoords} from './Coords';
+import {Coords, project, unproject, createCoords, copyCoords, areCoordsEqual} from './Coords';
 
 const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
@@ -50,14 +50,12 @@ function update() {
 }
 
 const roadSelectTile: {
-  row: number,
-  col: number,
+  current: Coords,
   isBuilding: boolean,
-  fromRow: number,
-  fromCol: number,
+  from: Coords,
   path: {[key: number]: true},
-} = {row: -1, col: -1, isBuilding: false,
-  fromRow: -1, fromCol: -1, path: {}};
+} = {current: createCoords(), isBuilding: false,
+  from: createCoords(), path: {}};
 
 const pickedTile = {row: 0, col: 0};
 const path: Path = {
@@ -74,21 +72,18 @@ function handleRoadMove(ev: LocalMouseEvent) {
   if (!roadSelectTile.isBuilding) {
     if ((ev.buttons & 1) !== 0) {
       roadSelectTile.isBuilding = true;
-      roadSelectTile.fromRow = row;
-      roadSelectTile.fromCol = col;
-      roadSelectTile.row = -1;
-      roadSelectTile.col = -1;
+      copyCoords(roadSelectTile.from, pickedTile);
+      roadSelectTile.current.row = -1;
+      roadSelectTile.current.col = -1;
       roadSelectTile.path = {};
     } else {
-      roadSelectTile.row = row;
-      roadSelectTile.col = col;
+      copyCoords(roadSelectTile.current, pickedTile);
       return;
     }
   }
-  if (row !== roadSelectTile.row || col !== roadSelectTile.col) {
-    roadSelectTile.row = row;
-    roadSelectTile.col = col;
-    findShortestPath(path, roadSelectTile.fromRow, roadSelectTile.fromCol, roadSelectTile.row, roadSelectTile.col);
+  if (!areCoordsEqual(roadSelectTile.current, pickedTile)) {
+    copyCoords(roadSelectTile.current, pickedTile);
+    findShortestPath(path, roadSelectTile.from, roadSelectTile.current);
     roadSelectTile.path = {};
     for (let i = 0; i < path.size; ++i) {
       roadSelectTile.path[Field.getTileIndex(path.coords[i])] = true;
@@ -241,7 +236,7 @@ function drawTile(row: number, col: number) {
   ctx.fill();
   ctx.stroke();
 
-  if (cursorMode === 'road' && roadSelectTile.row === row && roadSelectTile.col === col) {
+  if (cursorMode === 'road' && areCoordsEqual(roadSelectTile.current, {row, col})) {
     ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
     ctx.fill();
   }

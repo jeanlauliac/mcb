@@ -1,6 +1,6 @@
 import * as Field from './Field';
 import findNeighbours, {Neighbours} from './findNeighbours';
-import {Coords, createCoords, copyCoords, project} from './Coords';
+import {Coords, createCoords, copyCoords, project, areCoordsEqual} from './Coords';
 import MinBinaryHeap from './MinBinaryHeap';
 import invariant from './invariant';
 
@@ -14,6 +14,7 @@ for (let i = 0; i < 4; ++i) {
 const pending: MinBinaryHeap<Coords> = new MinBinaryHeap(512, createCoords);
 const projNeighbour: Coords = createCoords();
 const projTo: Coords = createCoords();
+const current: Coords = createCoords();
 
 export type Path = {
   coords: Array<Coords>,
@@ -22,16 +23,14 @@ export type Path = {
 
 export default function findShortestPath(
   result: Path,
-  fromRow: number,
-  fromCol: number,
-  toRow: number,
-  toCol: number,
+  from: Coords,
+  to: Coords,
 ): void {
   let found = false;
   const cameFrom: {[key: number]: {row: number, col: number}} = {};
   pending.clear();
   const pendingIds: {[key: number]: true} = {};
-  let current = {row: fromRow, col: fromCol};
+  copyCoords(current, from);
   if (Field.data[getTileIndex(current)].type === 'water') {
     result.size = 0;
     return;
@@ -42,12 +41,12 @@ export default function findShortestPath(
   const scores: {[key: number]: number} = {};
   scores[getTileIndex(current)] = 0;
 
-  project(projTo, {row: toRow, col: toCol});
+  project(projTo, to);
 
   while (!pending.isEmpty()) {
     copyCoords(current, pending.peek());
     pending.pop();
-    if (current.row === toRow && current.col === toCol) {
+    if (areCoordsEqual(current, to)) {
       found = true;
       break;
     }
@@ -89,7 +88,7 @@ export default function findShortestPath(
   copyCoords(result.coords[0], current);
   result.size = 1;
   while (cameFrom[getTileIndex(current)] != null) {
-    current = cameFrom[getTileIndex(current)];
+    copyCoords(current, cameFrom[getTileIndex(current)]);
     invariant(result.size < result.coords.length);
     copyCoords(result.coords[result.size], current);
     ++result.size;
