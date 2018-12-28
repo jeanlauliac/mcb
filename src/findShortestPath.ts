@@ -2,6 +2,7 @@ import * as Field from './Field';
 import findNeighbours, {Neighbours} from './findNeighbours';
 import {Coords, createCoords, copyCoords, project} from './Coords';
 import MinBinaryHeap from './MinBinaryHeap';
+import invariant from './invariant';
 
 const {getTileIndex} = Field;
 
@@ -14,19 +15,26 @@ const pending: MinBinaryHeap<Coords> = new MinBinaryHeap(512, createCoords);
 const projNeighbour: Coords = createCoords();
 const projTo: Coords = createCoords();
 
+export type Path = {
+  coords: Array<Coords>,
+  size: number,
+};
+
 export default function findShortestPath(
+  result: Path,
   fromRow: number,
   fromCol: number,
   toRow: number,
   toCol: number,
-) {
+): void {
   let found = false;
   const cameFrom: {[key: number]: {row: number, col: number}} = {};
   pending.clear();
   const pendingIds: {[key: number]: true} = {};
   let current = {row: fromRow, col: fromCol};
   if (Field.data[getTileIndex(current)].type === 'water') {
-    return [];
+    result.size = 0;
+    return;
   }
   copyCoords(pending.push(0), current);
   pendingIds[getTileIndex(current)] = true;
@@ -73,12 +81,17 @@ export default function findShortestPath(
       scores[neighbourIx] = score;
     }
   }
-  if (!found) return [];
+  if (!found) {
+    result.size = 0;
+    return;
+  }
 
-  const result = [{row: current.row, col: current.col}];
+  copyCoords(result.coords[0], current);
+  result.size = 1;
   while (cameFrom[getTileIndex(current)] != null) {
     current = cameFrom[getTileIndex(current)];
-    result.push({row: current.row, col: current.col});
+    invariant(result.size < result.coords.length);
+    copyCoords(result.coords[result.size], current);
+    ++result.size;
   }
-  return result.reverse();
 }

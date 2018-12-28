@@ -1,7 +1,7 @@
 import pickTile from './pickTile';
 import {TILE_HALF_WIDTH, TILE_HALF_HEIGHT} from './constants';
 import * as Field from './Field';
-import findShortestPath from './findShortestPath';
+import findShortestPath, {Path} from './findShortestPath';
 import {Neighbours} from './findNeighbours';
 import {Coords, project, unproject, createCoords} from './Coords';
 
@@ -60,6 +60,13 @@ const roadSelectTile: {
   fromRow: -1, fromCol: -1, path: {}};
 
 const pickedTile = {row: 0, col: 0};
+const path: Path = {
+  coords: [],
+  size: 0,
+};
+for (let i = 0; i < 512; ++i) {
+  path.coords.push(createCoords());
+}
 
 function handleRoadMove(ev: LocalMouseEvent) {
   pickTile(pickedTile, ev.clientX + cameraX, ev.clientY + cameraY);
@@ -81,10 +88,10 @@ function handleRoadMove(ev: LocalMouseEvent) {
   if (row !== roadSelectTile.row || col !== roadSelectTile.col) {
     roadSelectTile.row = row;
     roadSelectTile.col = col;
-    const path = findShortestPath(roadSelectTile.fromRow, roadSelectTile.fromCol, roadSelectTile.row, roadSelectTile.col);
+    findShortestPath(path, roadSelectTile.fromRow, roadSelectTile.fromCol, roadSelectTile.row, roadSelectTile.col);
     roadSelectTile.path = {};
-    for (let i = 0; i < path.length; ++i) {
-      roadSelectTile.path[Field.getTileIndex(path[i])] = true;
+    for (let i = 0; i < path.size; ++i) {
+      roadSelectTile.path[Field.getTileIndex(path.coords[i])] = true;
     }
   }
   if ((ev.buttons & 1) === 0) {
