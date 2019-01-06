@@ -202,6 +202,8 @@ const bottomRightCoords = createCoords();
 type CanvasCoords = {x: number, y: number};
 const canvasCoords: CanvasCoords = {x: 0, y: 0};
 
+const farmBaseTiles = [];
+
 function draw() {
 
   ctx.strokeStyle = '#a0a0a0';

@@ -3,18 +3,15 @@ import findNeighbours, {Neighbours} from './findNeighbours';
 import {Coords, createCoords, copyCoords, project, areCoordsEqual} from './Coords';
 import MinBinaryHeap from './MinBinaryHeap';
 import invariant from './invariant';
+import createArray from './createArray';
 
 const {getTileIndex} = Field;
 
-const neighbours: Neighbours = [];
-for (let i = 0; i < 4; ++i) {
-  neighbours.push({row: 0, col: 0});
-}
-
-const pending: MinBinaryHeap<Coords> = new MinBinaryHeap(512, createCoords);
-const projNeighbour: Coords = createCoords();
-const projTo: Coords = createCoords();
-const current: Coords = createCoords();
+const neighbours = createArray(4, () => ({row: 0, col: 0}));
+const pending = new MinBinaryHeap(512, createCoords);
+const projNeighbour = createCoords();
+const projTo = createCoords();
+const current = createCoords();
 
 export type Path = {
   coords: Array<Coords>,

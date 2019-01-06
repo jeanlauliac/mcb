@@ -1,4 +1,5 @@
 import invariant from './invariant';
+import createArray from './createArray';
 
 /**
  * A binary heap with min-key property and with no dynamic allocations. That can
@@ -10,10 +11,7 @@ export default class MinBinaryHeap<Value> {
 
   constructor(maxSize: number, valueCtor: () => Value) {
     this._size = 0;
-    this._data = [];
-    for (let i = 0; i < maxSize; ++i) {
-      this._data.push([0, valueCtor()]);
-    }
+    this._data = createArray<[number, Value]>(maxSize, () => [0, valueCtor()]);
   }
 
   clear() {
