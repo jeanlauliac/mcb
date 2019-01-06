@@ -4,6 +4,7 @@ import * as Field from './Field';
 import findShortestPath, {Path} from './findShortestPath';
 import {Neighbours} from './findNeighbours';
 import {Coords, project, unproject, createCoords, copyCoords, areCoordsEqual} from './Coords';
+import createArray from './createArray';
 
 const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
@@ -202,7 +203,7 @@ const bottomRightCoords = createCoords();
 type CanvasCoords = {x: number, y: number};
 const canvasCoords: CanvasCoords = {x: 0, y: 0};
 
-const farmBaseTiles = [];
+const farmBaseTiles = createArray<Coords>(9, createCoords);
 
 function draw() {
 
@@ -226,14 +227,23 @@ function draw() {
 
   if (cursorMode === 'farm') {
     project(projFrom, farmCoords);
-    ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
+    let i = 0;
+    let canBuild = true;
     for (projTo.row = projFrom.row - 1; projTo.row < projFrom.row + 2; ++projTo.row) {
       for (projTo.col = projFrom.col - 1; projTo.col < projFrom.col + 2; ++projTo.col) {
-        unproject(unproj, projTo);
-        getCanvasCoords(canvasCoords, unproj);
-        buildTilePath(canvasCoords);
-        ctx.fill();
+        unproject(farmBaseTiles[i], projTo);
+        const tileIx = farmBaseTiles[i].row * Field.width + farmBaseTiles[i].col;
+        const tile = Field.data[tileIx];
+        canBuild = canBuild && (tile.type === 'grass');
+        ++i;
       }
+    }
+
+    ctx.fillStyle = canBuild ? 'rgba(0, 255, 0, 0.5)' : 'rgba(255, 0, 0, 0.5)';
+    for (i = 0; i < farmBaseTiles.length; ++i) {
+      getCanvasCoords(canvasCoords, farmBaseTiles[i]);
+      buildTilePath(canvasCoords);
+      ctx.fill();
     }
   }
 }
