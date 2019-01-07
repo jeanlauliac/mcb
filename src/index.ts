@@ -203,7 +203,7 @@ const bottomRightCoords = createCoords();
 type CanvasCoords = {x: number, y: number};
 const canvasCoords: CanvasCoords = {x: 0, y: 0};
 
-const farmBaseTiles = createArray<Coords>(9, createCoords);
+const farmBaseTiles = createArray(9, createCoords);
 
 function draw() {
 
@@ -351,6 +351,7 @@ window.addEventListener('keydown', ev => {
       break;
     case 'f':
       cursorMode = 'farm';
+      handleFarmMove(lastMouseEv);
       break;
     case 'Escape':
       cursorMode = 'move';
