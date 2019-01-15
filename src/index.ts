@@ -38,22 +38,41 @@ let lastMouseEv = {clientX: 0, clientY: 0, buttons: 0};
 let hasMouseEv = false;
 
 function update() {
-  if (!hasMouseEv) return;
-  switch (cursorMode) {
-  case 'move':
-    handleCameraMove(lastMouseEv);
-    break;
-  case 'road':
-    handleRoadMove(lastMouseEv);
-    break;
-  case 'farm':
-    handleFarmMove(lastMouseEv);
-    break;
-  case 'delete':
-    handleDelete(lastMouseEv);
-    break;
+  if (hasMouseEv) {
+    switch (cursorMode) {
+    case 'move':
+      handleCameraMove(lastMouseEv);
+      break;
+    case 'road':
+      handleRoadMove(lastMouseEv);
+      break;
+    case 'farm':
+      handleFarmMove(lastMouseEv);
+      break;
+    case 'delete':
+      handleDelete(lastMouseEv);
+      break;
+    }
+    hasMouseEv = false;
   }
-  hasMouseEv = false;
+  for (let i = 0; i < keyPressCount; ++i) {
+    switch (keysPresses[i]) {
+      case 'r':
+        cursorMode = 'road';
+        break;
+      case 'd':
+        cursorMode = 'delete';
+        break;
+      case 'f':
+        cursorMode = 'farm';
+        handleFarmMove(lastMouseEv);
+        break;
+      case 'Escape':
+        cursorMode = 'move';
+        break;
+    }
+  }
+  keyPressCount = 0;
 }
 
 const roadSelectTile: {
@@ -341,22 +360,15 @@ function handleCameraMove(ev: LocalMouseEvent) {
   if (cameraY > camMaxY) cameraY = camMaxY;
 }
 
+const keysPresses = createArray<string>(8, () => '');
+let keyPressCount = 0;
+
 window.addEventListener('keydown', ev => {
-  switch (ev.key) {
-    case 'r':
-      cursorMode = 'road';
-      break;
-    case 'd':
-      cursorMode = 'delete';
-      break;
-    case 'f':
-      cursorMode = 'farm';
-      handleFarmMove(lastMouseEv);
-      break;
-    case 'Escape':
-      cursorMode = 'move';
-      break;
+  if (keyPressCount === 8) {
+    return;
   }
+  keysPresses[keyPressCount] = ev.key;
+  ++keyPressCount;
 });
 
 setTimeout(requestStep, 30);
