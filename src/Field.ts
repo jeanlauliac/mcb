@@ -1,19 +1,34 @@
+import {Coords} from './Coords';
+
+type Tile = {type: string};
 
 export const width = 40;
 export const height = 60;
 
-export const data = (() => {
+const data = (() => {
   let result = Array(height * width);
   for (let i = 0; i < result.length; ++i) {
-    result[i] = {
-      type: 'grass',
-    };
+    result[i] = createTile();
   }
   return result;
 })();
 
-export function getTileIndex(tile: {row: number, col: number}) {
-  return tile.row * width + tile.col;
+export function getTileIndex(coords: Coords) {
+  return coords.row * width + coords.col;
+}
+
+export function createTile() {
+  return {
+    type: 'grass',
+  };
+}
+
+export function getTile(index: number): Readonly<Tile> {
+  return data[index];
+}
+
+export function setTileType(index: number, type: string): void {
+  data[index].type = type;
 }
 
 function fillRow(row: number, fromCol: number, toCol: number, type: string) {

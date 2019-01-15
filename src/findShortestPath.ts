@@ -28,7 +28,7 @@ export default function findShortestPath(
   pending.clear();
   const pendingIds: {[key: number]: true} = {};
   copyCoords(current, from);
-  if (Field.data[getTileIndex(current)].type === 'water') {
+  if (Field.getTile(getTileIndex(current)).type === 'water') {
     result.size = 0;
     return;
   }
@@ -57,7 +57,7 @@ export default function findShortestPath(
         continue;
       }
       const neighbourIx = getTileIndex(neighbour);
-      if (Field.data[neighbourIx].type === 'water') {
+      if (Field.getTile(neighbourIx).type === 'water') {
         continue;
       }
       const {row, col} = neighbour;

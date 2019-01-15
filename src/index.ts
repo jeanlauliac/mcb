@@ -118,7 +118,7 @@ function handleRoadMove(ev: LocalMouseEvent) {
     roadSelectTile.isBuilding = false;
     const tileIds: Array<string> = Object.keys(roadSelectTile.path);
     for (let i = 0; i < tileIds.length; ++i) {
-      Field.data[+tileIds[i]].type = 'road';
+      Field.setTileType(+tileIds[i], 'road');
     }
   }
 }
@@ -171,9 +171,10 @@ function handleDelete(ev: LocalMouseEvent) {
     deleteInfo.isDeleting = false;
     const tileIds: Array<string> = Object.keys(deleteInfo.tiles);
     for (let i = 0; i < tileIds.length; ++i) {
-      const tile = Field.data[+tileIds[i]];
+      const ix = +tileIds[i];
+      const tile = Field.getTile(ix);
       if (tile.type === 'road') {
-        tile.type = 'grass';
+        Field.setTileType(ix, 'grass');
       }
     }
   }
@@ -252,7 +253,7 @@ function draw() {
       for (projTo.col = projFrom.col - 1; projTo.col < projFrom.col + 2; ++projTo.col) {
         unproject(farmBaseTiles[i], projTo);
         const tileIx = farmBaseTiles[i].row * Field.width + farmBaseTiles[i].col;
-        const tile = Field.data[tileIx];
+        const tile = Field.getTile(tileIx);
         canBuild = canBuild && (tile.type === 'grass');
         ++i;
       }
@@ -269,8 +270,8 @@ function draw() {
 
 function drawTile(row: number, col: number) {
   getCanvasCoords(canvasCoords, {row, col});
-  const tileIx = row * Field.width + col;
-  const tile = Field.data[tileIx];
+  const tileIx = Field.getTileIndex({row, col});
+  const tile = Field.getTile(tileIx);
 
   ctx.fillStyle = (() => {
     if (roadSelectTile.isBuilding && roadSelectTile.path[tileIx]) {
