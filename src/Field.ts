@@ -1,4 +1,4 @@
-import {Coords} from './Coords';
+import Coords from './Coords';
 
 type Tile = {type: string};
 
@@ -31,9 +31,11 @@ export function setTileType(index: number, type: string): void {
   data[index].type = type;
 }
 
+const iter = new Coords;
 function fillRow(row: number, fromCol: number, toCol: number, type: string) {
-  for (let col = fromCol; col <= toCol; ++col) {
-    data[getTileIndex({row, col})].type = type;
+  iter.row = row;
+  for (iter.col = fromCol; iter.col <= toCol; ++iter.col) {
+    data[getTileIndex(iter)].type = type;
   }
 }
 

@@ -1,25 +1,23 @@
+export default class Coords {
+  row = 0;
+  col = 0;
 
-export type Coords = {row: number, col: number};
+  projectFrom(source: Coords): void {
+    this.row = Math.floor((source.row + 1) / 2) + source.col;
+    this.col = -Math.floor(source.row / 2) + source.col;
+  }
 
-export function project(proj: Coords, source: Coords): void {
-  proj.row = Math.floor((source.row + 1) / 2) + source.col;
-  proj.col = -Math.floor(source.row / 2) + source.col;
-}
+  unprojectFrom(source: Coords): void {
+    this.row = source.row - source.col;
+    this.col = Math.floor((source.row + source.col) / 2);
+  }
 
-export function unproject(unproj: Coords, source: Coords): void {
-  unproj.row = source.row - source.col;
-  unproj.col = Math.floor((source.row + source.col) / 2);
-}
+  assign(from: Coords) {
+    this.row = from.row;
+    this.col = from.col;
+  }
 
-export function createCoords(): Coords {
-  return {row: -1, col: -1};
-}
-
-export function copyCoords(copy: Coords, source: Coords): void {
-  copy.row = source.row;
-  copy.col = source.col;
-}
-
-export function areCoordsEqual(a: Coords, b: Coords): boolean {
-  return a.row === b.row && a.col === b.col;
+  equals(target: Coords): boolean {
+    return this.row === target.row && this.col === target.col;
+  }
 }

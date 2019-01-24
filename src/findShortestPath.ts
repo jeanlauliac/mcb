@@ -1,17 +1,17 @@
 import * as Field from './Field';
 import findNeighbours, {Neighbours} from './findNeighbours';
-import {Coords, createCoords, copyCoords, project, areCoordsEqual} from './Coords';
+import Coords from './Coords';
 import MinBinaryHeap from './MinBinaryHeap';
 import invariant from './invariant';
 import createArray from './createArray';
 
 const {getTileIndex} = Field;
 
-const neighbours = createArray(4, () => ({row: 0, col: 0}));
-const pending = new MinBinaryHeap(512, createCoords);
-const projNeighbour = createCoords();
-const projTo = createCoords();
-const current = createCoords();
+const neighbours = createArray(4, () => new Coords);
+const pending = new MinBinaryHeap(512, () => new Coords);
+const projNeighbour = new Coords;
+const projTo = new Coords;
+const current = new Coords;
 
 export type Path = {
   coords: Array<Coords>,
@@ -24,26 +24,26 @@ export default function findShortestPath(
   to: Coords,
 ): void {
   let found = false;
-  const cameFrom: {[key: number]: {row: number, col: number}} = {};
+  const cameFrom: {[key: number]: Coords} = {};
   pending.clear();
   const pendingIds: {[key: number]: true} = {};
-  copyCoords(current, from);
+  current.assign(from);
   if (Field.getTile(getTileIndex(current)).type === 'water') {
     result.size = 0;
     return;
   }
-  copyCoords(pending.push(0), current);
+  pending.push(0).assign(current);
   pendingIds[getTileIndex(current)] = true;
 
   const scores: {[key: number]: number} = {};
   scores[getTileIndex(current)] = 0;
 
-  project(projTo, to);
+  projTo.projectFrom(to);
 
   while (!pending.isEmpty()) {
-    copyCoords(current, pending.peek());
+    current.assign(pending.peek());
     pending.pop();
-    if (areCoordsEqual(current, to)) {
+    if (current.equals(to)) {
       found = true;
       break;
     }
@@ -65,15 +65,16 @@ export default function findShortestPath(
 
       if (scores[neighbourIx] != null && score >= scores[neighbourIx]) continue;
       if (!pendingIds[neighbourIx]) {
-        project(projNeighbour, neighbour);
+        projNeighbour.projectFrom(neighbour);
         const distToEnd = Math.abs(projTo.row - projNeighbour.row)
           + Math.abs(projTo.col - projNeighbour.col) * 2;
         const fscore = score + distToEnd;
-        copyCoords(pending.push(fscore), neighbour);
+        pending.push(fscore).assign(neighbour);
         pendingIds[neighbourIx] = true;
       }
 
-      cameFrom[neighbourIx] = {row: current.row, col: current.col};
+      cameFrom[neighbourIx] = new Coords();
+      cameFrom[neighbourIx].assign(current);
       scores[neighbourIx] = score;
     }
   }
@@ -82,12 +83,12 @@ export default function findShortestPath(
     return;
   }
 
-  copyCoords(result.coords[0], current);
+  result.coords[0].assign(current);
   result.size = 1;
   while (cameFrom[getTileIndex(current)] != null) {
-    copyCoords(current, cameFrom[getTileIndex(current)]);
+    current.assign(cameFrom[getTileIndex(current)]);
     invariant(result.size < result.coords.length);
-    copyCoords(result.coords[result.size], current);
+    result.coords[result.size].assign(current);
     ++result.size;
   }
 }

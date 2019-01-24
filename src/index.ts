@@ -3,7 +3,7 @@ import {TILE_HALF_WIDTH, TILE_HALF_HEIGHT} from './constants';
 import * as Field from './Field';
 import findShortestPath, {Path} from './findShortestPath';
 import {Neighbours} from './findNeighbours';
-import {Coords, project, unproject, createCoords, copyCoords, areCoordsEqual} from './Coords';
+import Coords from './Coords';
 import createArray from './createArray';
 
 const canvas = document.createElement('canvas');
@@ -80,16 +80,16 @@ const roadSelectTile: {
   isBuilding: boolean,
   from: Coords,
   path: {[key: number]: true},
-} = {current: createCoords(), isBuilding: false,
-  from: createCoords(), path: {}};
+} = {current: new Coords(), isBuilding: false,
+  from: new Coords(), path: {}};
 
-const pickedTile = {row: 0, col: 0};
+const pickedTile = new Coords();
 const path: Path = {
   coords: [],
   size: 0,
 };
 for (let i = 0; i < 512; ++i) {
-  path.coords.push(createCoords());
+  path.coords.push(new Coords());
 }
 
 function handleRoadMove(ev: LocalMouseEvent) {
@@ -97,17 +97,17 @@ function handleRoadMove(ev: LocalMouseEvent) {
   if (!roadSelectTile.isBuilding) {
     if ((ev.buttons & 1) !== 0) {
       roadSelectTile.isBuilding = true;
-      copyCoords(roadSelectTile.from, pickedTile);
+      roadSelectTile.from.assign(pickedTile);
       roadSelectTile.current.row = -1;
       roadSelectTile.current.col = -1;
       roadSelectTile.path = {};
     } else {
-      copyCoords(roadSelectTile.current, pickedTile);
+      roadSelectTile.current.assign(pickedTile);
       return;
     }
   }
-  if (!areCoordsEqual(roadSelectTile.current, pickedTile)) {
-    copyCoords(roadSelectTile.current, pickedTile);
+  if (!roadSelectTile.current.equals(pickedTile)) {
+    roadSelectTile.current.assign(pickedTile);
     findShortestPath(path, roadSelectTile.from, roadSelectTile.current);
     roadSelectTile.path = {};
     for (let i = 0; i < path.size; ++i) {
@@ -123,26 +123,22 @@ function handleRoadMove(ev: LocalMouseEvent) {
   }
 }
 
-const farmCoords = createCoords();
+const farmCoords = new Coords();
 
 function handleFarmMove(ev: LocalMouseEvent) {
   pickTile(pickedTile, ev.clientX + cameraX, ev.clientY + cameraY);
-  copyCoords(farmCoords, pickedTile);
+  farmCoords.assign(pickedTile);
 }
 
 const deleteInfo: {
   isDeleting: boolean,
-  row: number,
-  col: number,
-  fromRow: number,
-  fromCol: number,
+  toCoords: Coords,
+  fromCoords: Coords,
   tiles: {[key: number]: true},
 } = {
   isDeleting: false,
-  row: -1,
-  col: -1,
-  fromRow: -1,
-  fromCol: -1,
+  fromCoords: new Coords(),
+  toCoords: new Coords(),
   tiles: {},
 };
 
@@ -152,20 +148,20 @@ function handleDelete(ev: LocalMouseEvent) {
   if (!deleteInfo.isDeleting) {
     if ((ev.buttons & 1) !== 0) {
       deleteInfo.isDeleting = true;
-      deleteInfo.fromRow = row;
-      deleteInfo.fromCol = col;
-      deleteInfo.row = -1;
-      deleteInfo.col = -1;
+      deleteInfo.fromCoords.row = row;
+      deleteInfo.fromCoords.col = col;
+      deleteInfo.toCoords.row = -1;
+      deleteInfo.toCoords.col = -1;
     } else {
-      deleteInfo.row = row;
-      deleteInfo.col = col;
+      deleteInfo.toCoords.row = row;
+      deleteInfo.toCoords.col = col;
       return;
     }
   }
-  if (row !== deleteInfo.row || col !== deleteInfo.col) {
-    deleteInfo.row = row;
-    deleteInfo.col = col;
-    deleteInfo.tiles = findSquare({row: deleteInfo.fromRow, col: deleteInfo.fromCol}, {row: deleteInfo.row, col: deleteInfo.col});
+  if (row !== deleteInfo.toCoords.row || col !== deleteInfo.toCoords.col) {
+    deleteInfo.toCoords.row = row;
+    deleteInfo.toCoords.col = col;
+    deleteInfo.tiles = findSquare(deleteInfo.fromCoords, deleteInfo.toCoords);
   }
   if ((ev.buttons & 1) === 0) {
     deleteInfo.isDeleting = false;
@@ -185,14 +181,15 @@ for (let i = 0; i < 4; ++i) {
   neighbours.push({row: 0, col: 0});
 }
 
-const projFrom: Coords = {row: 0, col: 0};
-const projTo: Coords = {row: 0, col: 0};
-const unproj: Coords = {row: 0, col: 0};
+const projFrom = new Coords;
+const projTo = new Coords;
+const unproj = new Coords;
+const iter = new Coords;
 
 function findSquare(from: Coords, to: Coords) {
   const result: {[key: number]: true} = {};
-  project(projFrom, from);
-  project(projTo, to);
+  projFrom.projectFrom(from);
+  projTo.projectFrom(to);
   if (projFrom.row > projTo.row) {
     const row = projTo.row;
     projTo.row = projFrom.row;
@@ -204,9 +201,9 @@ function findSquare(from: Coords, to: Coords) {
     projFrom.col = col;
   }
 
-  for (let row = projFrom.row; row <= projTo.row; ++row) {
-    for (let col = projFrom.col; col <= projTo.col; ++col) {
-      unproject(unproj, {row, col});
+  for (iter.row = projFrom.row; iter.row <= projTo.row; ++iter.row) {
+    for (iter.col = projFrom.col; iter.col <= projTo.col; ++iter.col) {
+      unproj.unprojectFrom(iter);
       if (unproj.row < 0 || unproj.row >= Field.height || unproj.col < 0 || unproj.col >= Field.width) {
         continue;
       }
@@ -217,13 +214,14 @@ function findSquare(from: Coords, to: Coords) {
   return result;
 }
 
-const topLeftCoords = createCoords();
-const bottomRightCoords = createCoords();
+const topLeftCoords = new Coords();
+const bottomRightCoords = new Coords();
 
 type CanvasCoords = {x: number, y: number};
 const canvasCoords: CanvasCoords = {x: 0, y: 0};
 
-const farmBaseTiles = createArray(9, createCoords);
+const farmBaseTiles = createArray(9, () => new Coords);
+const drawCoords = new Coords;
 
 function draw() {
 
@@ -239,19 +237,19 @@ function draw() {
   const maxRow = Math.min(bottomRightCoords.row + 2, Field.height);
   const maxCol = Math.min(bottomRightCoords.col + 2, Field.width);
 
-  for (let row = Math.max(0, topLeftCoords.row - 1); row < maxRow; ++row) {
-    for (let col = Math.max(0, topLeftCoords.col - 1); col < maxCol; ++col) {
-      drawTile(row, col);
+  for (drawCoords.row = Math.max(0, topLeftCoords.row - 1); drawCoords.row < maxRow; ++drawCoords.row) {
+    for (drawCoords.col = Math.max(0, topLeftCoords.col - 1); drawCoords.col < maxCol; ++drawCoords.col) {
+      drawTile(drawCoords);
     }
   }
 
   if (cursorMode === 'farm') {
-    project(projFrom, farmCoords);
+    projFrom.projectFrom(farmCoords);
     let i = 0;
     let canBuild = true;
     for (projTo.row = projFrom.row - 1; projTo.row < projFrom.row + 2; ++projTo.row) {
       for (projTo.col = projFrom.col - 1; projTo.col < projFrom.col + 2; ++projTo.col) {
-        unproject(farmBaseTiles[i], projTo);
+        farmBaseTiles[i].unprojectFrom(projTo);
         const tileIx = farmBaseTiles[i].row * Field.width + farmBaseTiles[i].col;
         const tile = Field.getTile(tileIx);
         canBuild = canBuild && (tile.type === 'grass');
@@ -268,9 +266,9 @@ function draw() {
   }
 }
 
-function drawTile(row: number, col: number) {
-  getCanvasCoords(canvasCoords, {row, col});
-  const tileIx = Field.getTileIndex({row, col});
+function drawTile(target: Coords) {
+  getCanvasCoords(canvasCoords, target);
+  const tileIx = Field.getTileIndex(target);
   const tile = Field.getTile(tileIx);
 
   ctx.fillStyle = (() => {
@@ -289,12 +287,12 @@ function drawTile(row: number, col: number) {
   ctx.fill();
   ctx.stroke();
 
-  if (cursorMode === 'road' && areCoordsEqual(roadSelectTile.current, {row, col})) {
+  if (cursorMode === 'road' && roadSelectTile.current.equals(target)) {
     ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
     ctx.fill();
   }
   if (
-    cursorMode === 'delete' && deleteInfo.row === row && deleteInfo.col === col ||
+    cursorMode === 'delete' && deleteInfo.toCoords.equals(target) ||
     deleteInfo.isDeleting && deleteInfo.tiles[tileIx]
   ) {
     ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
