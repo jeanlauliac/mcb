@@ -1,24 +1,21 @@
 import * as Field from './Field';
 import invariant from './invariant';
+import Coords from './Coords';
 
-export type Neighbours = Array<{row: number, col: number}>;
+export type Neighbours = Array<Coords>;
 
-export default function findNeighbours(result: Neighbours, row: number, col: number): void {
+export default function findNeighbours(result: Neighbours, coords: Coords): void {
   invariant(result.length === 4);
+  const {row, col} = coords;
   if (row % 2 === 0) {
-    setNeighbour(result, 0, row - 1, col);
-    setNeighbour(result, 1, row + 1, col);
-    setNeighbour(result, 2, row + 1, col - 1);
-    setNeighbour(result, 3, row - 1, col - 1);
+    result[0].set(row - 1, col);
+    result[1].set(row + 1, col);
+    result[2].set(row + 1, col - 1);
+    result[3].set(row - 1, col - 1);
   } else {
-    setNeighbour(result, 0, row - 1, col + 1);
-    setNeighbour(result, 1, row + 1, col + 1);
-    setNeighbour(result, 2, row + 1, col);
-    setNeighbour(result, 3, row - 1, col);
+    result[0].set(row - 1, col + 1);
+    result[1].set(row + 1, col + 1);
+    result[2].set(row + 1, col);
+    result[3].set(row - 1, col);
   }
-}
-
-function setNeighbour(result: Neighbours, slot: number, row: number, col: number): void {
-  result[slot].row = row;
-  result[slot].col = col;
 }

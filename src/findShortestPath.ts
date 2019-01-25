@@ -50,7 +50,7 @@ export default function findShortestPath(
     const curTileIx = getTileIndex(current);
     delete pendingIds[curTileIx];
 
-    findNeighbours(neighbours, current.row, current.col);
+    findNeighbours(neighbours, current);
     for (let i = 0; i < neighbours.length; ++i) {
       const neighbour = neighbours[i];
       if (neighbour.row < 0 || neighbour.row >= Field.height || neighbour.col < 0 || neighbour.col >= Field.width) {

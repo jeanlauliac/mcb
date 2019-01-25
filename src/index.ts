@@ -176,10 +176,7 @@ function handleDelete(ev: LocalMouseEvent) {
   }
 }
 
-const neighbours: Neighbours = [];
-for (let i = 0; i < 4; ++i) {
-  neighbours.push({row: 0, col: 0});
-}
+const neighbours: Neighbours = createArray(4, () => new Coords);
 
 const projFrom = new Coords;
 const projTo = new Coords;

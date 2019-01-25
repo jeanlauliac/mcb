@@ -17,6 +17,11 @@ export default class Coords {
     this.col = from.col;
   }
 
+  set(row: number, col: number) {
+    this.row = row;
+    this.col = col;
+  }
+
   equals(target: Coords): boolean {
     return this.row === target.row && this.col === target.col;
   }
