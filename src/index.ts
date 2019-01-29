@@ -5,6 +5,7 @@ import findShortestPath, {Path} from './findShortestPath';
 import {Neighbours} from './findNeighbours';
 import Coords from './Coords';
 import createArray from './createArray';
+import Dequeue from './Dequeue';
 
 const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
@@ -37,23 +38,26 @@ let cursorMode = 'move';
 let lastMouseEv = {clientX: 0, clientY: 0, buttons: 0};
 let hasMouseEv = false;
 
+type LocalMouseEvent = {clientX: number, clientY: number, buttons: number};
+const mouseEvents = new Dequeue(8, () => ({clientX: 0, clientY: 0, buttons: 0}));
+
 function update() {
-  if (hasMouseEv) {
+  for (; !mouseEvents.isEmpty(); mouseEvents.shift()) {
+    const ev = mouseEvents.first();
     switch (cursorMode) {
     case 'move':
-      handleCameraMove(lastMouseEv);
+      handleCameraMove(ev);
       break;
     case 'road':
-      handleRoadMove(lastMouseEv);
+      handleRoadMove(ev);
       break;
     case 'farm':
-      handleFarmMove(lastMouseEv);
+      handleFarmMove(ev);
       break;
     case 'delete':
-      handleDelete(lastMouseEv);
+      handleDelete(ev);
       break;
     }
-    hasMouseEv = false;
   }
   for (let i = 0; i < keyPressCount; ++i) {
     switch (keysPresses[i]) {
@@ -316,13 +320,11 @@ function buildTilePath(coords: CanvasCoords): void {
 
 const camMove = {x: 0, y: 0, camX: 0, camY: 0, moving: false};
 
-type LocalMouseEvent = {clientX: number, clientY: number, buttons: number};
-
 function handleMouseEvent(ev: MouseEvent) {
-  lastMouseEv.clientX = ev.clientX;
-  lastMouseEv.clientY = ev.clientY;
-  lastMouseEv.buttons = ev.buttons;
-  hasMouseEv = true;
+  const lastEv = mouseEvents.push();
+  lastEv.clientX = ev.clientX;
+  lastEv.clientY = ev.clientY;
+  lastEv.buttons = ev.buttons;
 }
 
 canvas.addEventListener('mousemove', handleMouseEvent);

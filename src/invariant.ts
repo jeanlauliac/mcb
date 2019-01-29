@@ -1,5 +1,8 @@
-export default function invariant(cond: boolean): void {
+export default function invariant(cond: boolean, message?: string): void {
   if (!cond) {
-    throw new Error('invariant failed');
+    throw new Error(
+      'invariant failed' +
+        (message != null ? ': ' + message : '')
+    );
   }
 }

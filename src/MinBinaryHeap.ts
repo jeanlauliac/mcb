@@ -18,7 +18,7 @@ export default class MinBinaryHeap<Value> {
     this._size = 0;
   }
 
-  size() {
+  get size() {
     return this._size;
   }
 

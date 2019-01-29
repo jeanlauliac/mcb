@@ -1,0 +1,68 @@
+import invariant from './invariant';
+
+/**
+ * A double-ended queue with a static capacity and no dynamic allocations.
+ * Can be used as a vector, a stack, etc.
+ */
+export default class Dequeue<Value> {
+  private _data: Array<Value> = [];
+  private _begin: number = 0;
+  private _end: number = 0;
+
+  constructor(capacity: number, valueCtor: () => Value) {
+    invariant(
+      capacity > 0 &&
+        Number.isInteger(capacity),
+      'capacity must be a positive integer',
+    );
+    for (; capacity >= 0; --capacity) {
+      this._data.push(valueCtor());
+    }
+  }
+
+  get size() {
+    if (this._begin <= this._end) return this._end - this._begin;
+    return this._data.length - this._begin + this._end;
+  }
+
+  isEmpty() {
+    return this._begin === this._end;
+  }
+
+  push(): Value {
+    if (this._end === this._data.length - 1) this._end = 0;
+    else ++this._end;
+    invariant(this._end !== this._begin, 'Dequeue reached maximum capacity');
+    return this.last();
+  }
+
+  last(): Value {
+    invariant(!this.isEmpty(), 'Dequeue is empty');
+    if (this._end === 0) return this._data[this._data.length - 1];
+    return this._data[this._end - 1];
+  }
+
+  pop(): void {
+    invariant(!this.isEmpty(), 'Dequeue is already empty');
+    if (this._end === 1) this._end = this._data.length;
+    else --this._end;
+  }
+
+  unshift(): Value {
+    if (this._begin === 0) this._begin = this._data.length;
+    --this._begin;
+    invariant(this._end !== this._begin, 'Dequeue reached maximum capacity');
+    return this._data[this._begin];
+  }
+
+  first(): Value {
+    invariant(!this.isEmpty(), 'Dequeue is empty');
+    return this._data[this._begin];
+  }
+
+  shift(): void {
+    invariant(!this.isEmpty(), 'Dequeue is already empty');
+    ++this._begin;
+    if (this._begin === this._data.length) this._begin = 0;
+  }
+}
