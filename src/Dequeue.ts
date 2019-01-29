@@ -33,10 +33,10 @@ export default class Dequeue<Value> {
     if (this._end === this._data.length - 1) this._end = 0;
     else ++this._end;
     invariant(this._end !== this._begin, 'Dequeue reached maximum capacity');
-    return this.last();
+    return this.last;
   }
 
-  last(): Value {
+  get last(): Value {
     invariant(!this.isEmpty(), 'Dequeue is empty');
     if (this._end === 0) return this._data[this._data.length - 1];
     return this._data[this._end - 1];
@@ -44,7 +44,7 @@ export default class Dequeue<Value> {
 
   pop(): void {
     invariant(!this.isEmpty(), 'Dequeue is already empty');
-    if (this._end === 1) this._end = this._data.length;
+    if (this._end === 0) this._end = this._data.length - 1;
     else --this._end;
   }
 
@@ -52,10 +52,10 @@ export default class Dequeue<Value> {
     if (this._begin === 0) this._begin = this._data.length;
     --this._begin;
     invariant(this._end !== this._begin, 'Dequeue reached maximum capacity');
-    return this._data[this._begin];
+    return this.first;
   }
 
-  first(): Value {
+  get first(): Value {
     invariant(!this.isEmpty(), 'Dequeue is empty');
     return this._data[this._begin];
   }
