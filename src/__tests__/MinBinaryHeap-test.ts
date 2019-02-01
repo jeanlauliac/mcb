@@ -1,6 +1,6 @@
 import MinBinaryHeap from '../MinBinaryHeap';
 
-it('works', () => {
+it('works in a basic case', () => {
   const heap = new MinBinaryHeap(10, () => ({value: null}));
   expect(heap.size).toBe(0);
   expect(heap.isEmpty()).toBe(true);
