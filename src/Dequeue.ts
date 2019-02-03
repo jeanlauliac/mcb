@@ -29,6 +29,10 @@ export default class Dequeue<Value> {
     return this._begin === this._end;
   }
 
+  isFull() {
+    return this.size + 1 >= this._data.length;
+  }
+
   push(): Value {
     if (this._end === this._data.length - 1) this._end = 0;
     else ++this._end;

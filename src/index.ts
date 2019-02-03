@@ -10,13 +10,21 @@ import Dequeue from './Dequeue';
 const canvas = document.createElement('canvas');
 document.body.appendChild(canvas);
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+const dpr = window.devicePixelRatio || 1;
+const width = window.innerWidth;
+const height = window.innerHeight;
+canvas.width = width * dpr;
+canvas.height = height * dpr;
+canvas.style.width = width + 'px';
+canvas.style.height = height + 'px';
 
 const ctx = canvas.getContext('2d');
+ctx.scale(dpr, dpr);
 
 let lastTimestamp: number;
 const tickLength = Math.floor(1 / 30 * 1000); // 30 Hz
+
+const tiles: any = document.getElementById('tiles');
 
 function requestStep() {
   window.requestAnimationFrame(step);
@@ -43,7 +51,7 @@ const mouseEvents = new Dequeue(8, () => ({clientX: 0, clientY: 0, buttons: 0}))
 
 function update() {
   for (; !mouseEvents.isEmpty(); mouseEvents.shift()) {
-    const ev = mouseEvents.first();
+    const ev = mouseEvents.first;
     switch (cursorMode) {
     case 'move':
       handleCameraMove(ev);
@@ -83,7 +91,7 @@ const roadSelectTile: {
   current: Coords,
   isBuilding: boolean,
   from: Coords,
-  path: {[key: number]: true},
+  path: {[key: number]: Coords},
 } = {current: new Coords(), isBuilding: false,
   from: new Coords(), path: {}};
 
@@ -95,6 +103,8 @@ const path: Path = {
 for (let i = 0; i < 512; ++i) {
   path.coords.push(new Coords());
 }
+
+const roadProj = new Coords();
 
 function handleRoadMove(ev: LocalMouseEvent) {
   pickTile(pickedTile, ev.clientX + cameraX, ev.clientY + cameraY);
@@ -115,14 +125,25 @@ function handleRoadMove(ev: LocalMouseEvent) {
     findShortestPath(path, roadSelectTile.from, roadSelectTile.current);
     roadSelectTile.path = {};
     for (let i = 0; i < path.size; ++i) {
-      roadSelectTile.path[Field.getTileIndex(path.coords[i])] = true;
+      const cc = roadSelectTile.path[Field.getTileIndex(path.coords[i])] = new Coords();
+      cc.assign(path.coords[i]);
     }
   }
   if ((ev.buttons & 1) === 0) {
     roadSelectTile.isBuilding = false;
-    const tileIds: Array<string> = Object.keys(roadSelectTile.path);
+    const {path} = roadSelectTile;
+    const tileIds: Array<string> = Object.keys(path);
     for (let i = 0; i < tileIds.length; ++i) {
-      Field.setTileType(+tileIds[i], 'road');
+      const index = +tileIds[i];
+      const coords = path[index];
+      roadProj.projectFrom(coords);
+      roadProj.col += 1;
+      coords.unprojectFrom(roadProj);
+      if (path[Field.getTileIndex(coords)] != null) {
+        Field.setTileType(index, 'road_h');
+      } else {
+        Field.setTileType(index, 'road_v');
+      }
     }
   }
 }
@@ -232,8 +253,8 @@ function draw() {
   pickTile(topLeftCoords, cameraX, cameraY);
   pickTile(
     bottomRightCoords,
-    cameraX + canvas.width,
-    cameraY + canvas.height,
+    cameraX + width,
+    cameraY + height,
   );
   const maxRow = Math.min(bottomRightCoords.row + 2, Field.height);
   const maxCol = Math.min(bottomRightCoords.col + 2, Field.width);
@@ -267,26 +288,48 @@ function draw() {
   }
 }
 
+const TILE_IMG_WIDTH = TILE_HALF_WIDTH * 4;
+
+function drawTileImg(canvasCoords: CanvasCoords, index: number) {
+  const dx = canvasCoords.x - TILE_HALF_WIDTH;
+  const dy = canvasCoords.y - 3 * TILE_HALF_HEIGHT;
+  ctx.drawImage(tiles, index * TILE_IMG_WIDTH, 0, TILE_IMG_WIDTH, TILE_HALF_HEIGHT * 8,
+    dx, dy, TILE_HALF_WIDTH * 2, TILE_HALF_HEIGHT * 4);
+}
+
 function drawTile(target: Coords) {
   getCanvasCoords(canvasCoords, target);
   const tileIx = Field.getTileIndex(target);
   const tile = Field.getTile(tileIx);
 
-  ctx.fillStyle = (() => {
-    if (roadSelectTile.isBuilding && roadSelectTile.path[tileIx]) {
-      return '#f5f5d2';
-    }
-    switch (tile.type) {
-      case 'grass': return '#b1e4a6';
-      case 'water': return '#2d5cab';
-      case 'road': return '#f5f5d2';
-      default: return '#000';
-    }
-  })();
+  if (tile.type === 'road_v') {
+    drawTileImg(canvasCoords, 1);
+    buildTilePath(canvasCoords);
+  } else if (tile.type === 'road_h') {
+    drawTileImg(canvasCoords, 2);
+    buildTilePath(canvasCoords);
 
-  buildTilePath(canvasCoords);
-  ctx.fill();
-  ctx.stroke();
+  } else if (tile.type === 'grass' && !(roadSelectTile.isBuilding && roadSelectTile.path[tileIx])) {
+    drawTileImg(canvasCoords, 0);
+    buildTilePath(canvasCoords);
+
+  } else {
+
+    ctx.fillStyle = (() => {
+      if (roadSelectTile.isBuilding && roadSelectTile.path[tileIx]) {
+        return '#f5f5d2';
+      }
+      switch (tile.type) {
+        case 'grass': return '#b1e4a6';
+        case 'water': return '#2d5cab';
+        case 'road': return '#f5f5d2';
+        default: return '#000';
+      }
+    })();
+    buildTilePath(canvasCoords);
+    ctx.fill();
+    ctx.stroke();
+  }
 
   if (cursorMode === 'road' && roadSelectTile.current.equals(target)) {
     ctx.fillStyle = 'rgba(0, 255, 0, 0.5)';
@@ -321,6 +364,9 @@ function buildTilePath(coords: CanvasCoords): void {
 const camMove = {x: 0, y: 0, camX: 0, camY: 0, moving: false};
 
 function handleMouseEvent(ev: MouseEvent) {
+  if (mouseEvents.isFull()) {
+    mouseEvents.shift();
+  }
   const lastEv = mouseEvents.push();
   lastEv.clientX = ev.clientX;
   lastEv.clientY = ev.clientY;
@@ -349,12 +395,12 @@ function handleCameraMove(ev: LocalMouseEvent) {
 
   cameraX = camMove.camX + camMove.x - ev.clientX;
   if (cameraX < 0) cameraX = 0;
-  const camMaxX = (Field.width - 1) * TILE_HALF_WIDTH * 2 - canvas.width;
+  const camMaxX = (Field.width - 1) * TILE_HALF_WIDTH * 2 - width;
   if (cameraX > camMaxX) cameraX = camMaxX;
 
   cameraY = camMove.camY + camMove.y - ev.clientY;
   if (cameraY < 0) cameraY = 0;
-  const camMaxY = (Field.height - 1) * TILE_HALF_HEIGHT - canvas.height;
+  const camMaxY = (Field.height - 1) * TILE_HALF_HEIGHT - height;
   if (cameraY > camMaxY) cameraY = camMaxY;
 }
 
