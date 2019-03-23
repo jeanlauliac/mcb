@@ -1,11 +1,12 @@
 import invariant from './invariant';
+import createArray from './createArray';
 
 /**
  * A double-ended queue with a static capacity and no dynamic allocations.
  * Can be used as a vector, a stack, etc.
  */
 export default class Dequeue<Value> {
-  private _data: Array<Value> = [];
+  private _data: Array<Value>;
   private _begin: number = 0;
   private _end: number = 0;
 
@@ -15,9 +16,7 @@ export default class Dequeue<Value> {
         Number.isInteger(capacity),
       'capacity must be a positive integer',
     );
-    for (; capacity >= 0; --capacity) {
-      this._data.push(valueCtor());
-    }
+    this._data = createArray(capacity, valueCtor);
   }
 
   get size() {
