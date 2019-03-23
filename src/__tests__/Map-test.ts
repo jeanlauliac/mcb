@@ -53,3 +53,9 @@ it('handles collision deletions', () => {
   expect(map.get(13)).toEqual(null);
   expect(map.get(23)).toEqual({value: 3});
 });
+
+it('can be cleared', () => {
+  map.set(3).value = 1;
+  map.clear();
+  expect(map.get(3)).toBe(null);
+});

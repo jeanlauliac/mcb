@@ -8,7 +8,7 @@ type Bucket<Key, Value> = {
 }
 
 /**
- * Implement a Map using Open Addressing
+ * Implement a Map with no dynamic allocations using linear open addressing
  * (https://en.wikipedia.org/wiki/Open_addressing).
  */
 export default class Map<Key, Value> {
