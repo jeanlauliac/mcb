@@ -1,5 +1,5 @@
-import invariant from './invariant';
-import createArray from './createArray';
+import invariant from "./invariant";
+import createArray from "./createArray";
 
 /**
  * A binary heap with min-key property and with no dynamic allocations. That can
@@ -35,8 +35,8 @@ export default class MinBinaryHeap<Value> {
     invariant(this._size < this._data.length);
     let i = this._size;
     this._data[i][0] = key;
-    while (i !== 0 && this._data[i][0] < this._data[(i / 2 | 0)][0]) {
-      const pi = i / 2 | 0;
+    while (i !== 0 && this._data[i][0] < this._data[(i / 2) | 0][0]) {
+      const pi = (i / 2) | 0;
       this._swap(i, pi);
       i = pi;
     }

@@ -1,11 +1,11 @@
-import invariant from './invariant';
-import createArray from './createArray';
+import invariant from "./invariant";
+import createArray from "./createArray";
 
 type Bucket<Key, Value> = {
-  seqNumber: number,
-  key?: Key,
-  value: Value,
-}
+  seqNumber: number;
+  key?: Key;
+  value: Value;
+};
 
 /**
  * Implement a Map with no dynamic allocations using linear open addressing
@@ -17,15 +17,17 @@ export default class Map<Key, Value> {
   private _size = 0;
   private _seqNumber = 1;
 
-  constructor(capacity: number,
-      valueCtor: () => Value, keyHash: (key: Key) => number) {
+  constructor(
+    capacity: number,
+    valueCtor: () => Value,
+    keyHash: (key: Key) => number
+  ) {
     invariant(
-      capacity > 0 &&
-        Number.isInteger(capacity),
-      'capacity must be a positive integer',
+      capacity > 0 && Number.isInteger(capacity),
+      "capacity must be a positive integer"
     );
     this._data = createArray(capacity, () => {
-      return {seqNumber: 0, key: null, value: valueCtor()};
+      return { seqNumber: 0, key: null, value: valueCtor() };
     });
     this._keyHash = keyHash;
   }
@@ -49,8 +51,10 @@ export default class Map<Key, Value> {
 
   set(key: Key): Value {
     const slot = this._data[this._findSlot(key)];
-    invariant(slot.key === key || slot.seqNumber < this._seqNumber,
-        'map storage is full');
+    invariant(
+      slot.key === key || slot.seqNumber < this._seqNumber,
+      "map storage is full"
+    );
     if (slot.key !== key || slot.seqNumber < this._seqNumber) {
       ++this._size;
     }
@@ -79,11 +83,10 @@ export default class Map<Key, Value> {
         break;
       }
       const k = this._getKeySlot(this._data[j].key);
-      if ((i<=j) ? ((i<k)&&(k<=j)) : ((i<k)||(k<=j)))
-        continue;
+      if (i <= j ? i < k && k <= j : i < k || k <= j) continue;
       this._swapSlots(i, j);
       i = j;
-    };
+    }
     return true;
   }
 
@@ -92,8 +95,7 @@ export default class Map<Key, Value> {
     let i = this._getKeySlot(key);
     let j = 0;
     let slot = this._data[i];
-    while (j < size && slot.key !== key &&
-        slot.seqNumber === this._seqNumber) {
+    while (j < size && slot.key !== key && slot.seqNumber === this._seqNumber) {
       i = (i + 1) % size;
       ++j;
       slot = this._data[i];

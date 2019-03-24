@@ -1,4 +1,3 @@
-
 const table: Array<number> = [];
 for (let i = 0; i < 256; ++i) {
   table.push(Math.floor(Math.random() * Math.pow(2, 32)));

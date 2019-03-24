@@ -1,7 +1,7 @@
-import Dequeue from '../Dequeue';
+import Dequeue from "../Dequeue";
 
-it('pushes and pops a value', () => {
-  const stack = new Dequeue(10, () => ({value: 0}));
+it("pushes and pops a value", () => {
+  const stack = new Dequeue(10, () => ({ value: 0 }));
   expect(stack.size).toEqual(0);
   expect(stack.isEmpty()).toEqual(true);
 
@@ -15,8 +15,8 @@ it('pushes and pops a value', () => {
   expect(stack.isEmpty()).toEqual(true);
 });
 
-it('unshifts and shifts a value', () => {
-  const stack = new Dequeue(10, () => ({value: 0}));
+it("unshifts and shifts a value", () => {
+  const stack = new Dequeue(10, () => ({ value: 0 }));
   expect(stack.size).toEqual(0);
   expect(stack.isEmpty()).toEqual(true);
 
@@ -30,8 +30,8 @@ it('unshifts and shifts a value', () => {
   expect(stack.isEmpty()).toEqual(true);
 });
 
-it('pushes and shifts values repeatedly', () => {
-  const queue = new Dequeue(10, () => ({value: 0}));
+it("pushes and shifts values repeatedly", () => {
+  const queue = new Dequeue(10, () => ({ value: 0 }));
 
   for (let i = 0; i < 10; ++i) {
     queue.push().value = 1;

@@ -1,7 +1,11 @@
-import {TILE_HALF_WIDTH, TILE_HALF_HEIGHT} from './constants';
-import Coords from './Coords';
+import { TILE_HALF_WIDTH, TILE_HALF_HEIGHT } from "./constants";
+import Coords from "./Coords";
 
-export default function pickTile(pickedCoords: Coords, fieldX: number, fieldY: number): void {
+export default function pickTile(
+  pickedCoords: Coords,
+  fieldX: number,
+  fieldY: number
+): void {
   let gridRow = Math.floor(fieldY / TILE_HALF_HEIGHT);
   let gridCol = Math.floor(fieldX / TILE_HALF_WIDTH);
   let localX = fieldX % TILE_HALF_WIDTH;
