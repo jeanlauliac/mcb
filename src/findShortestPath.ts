@@ -4,6 +4,8 @@ import Coords from './Coords';
 import MinBinaryHeap from './MinBinaryHeap';
 import invariant from './invariant';
 import createArray from './createArray';
+import Map from './Map';
+import hashInteger from './hashInteger';
 
 const {getTileIndex} = Field;
 
@@ -12,6 +14,7 @@ const pending = new MinBinaryHeap(512, () => new Coords);
 const projNeighbour = new Coords;
 const projTo = new Coords;
 const current = new Coords;
+const cameFrom = new Map(512, () => new Coords, hashInteger);
 
 export type Path = {
   coords: Array<Coords>,
@@ -24,7 +27,7 @@ export default function findShortestPath(
   to: Coords,
 ): void {
   let found = false;
-  const cameFrom: {[key: number]: Coords} = {};
+  cameFrom.clear();
   pending.clear();
   const pendingIds: {[key: number]: true} = {};
   current.assign(from);
@@ -40,7 +43,7 @@ export default function findShortestPath(
 
   projTo.projectFrom(to);
 
-  while (!pending.isEmpty()) {
+  while (!pending.isEmpty() && !cameFrom.isFull()) {
     current.assign(pending.peek());
     pending.pop();
     if (current.equals(to)) {
@@ -73,8 +76,8 @@ export default function findShortestPath(
         pendingIds[neighbourIx] = true;
       }
 
-      cameFrom[neighbourIx] = new Coords();
-      cameFrom[neighbourIx].assign(current);
+      if (!cameFrom.isFull())
+        cameFrom.set(neighbourIx).assign(current);
       scores[neighbourIx] = score;
     }
   }
@@ -85,10 +88,12 @@ export default function findShortestPath(
 
   result.coords[0].assign(current);
   result.size = 1;
-  while (cameFrom[getTileIndex(current)] != null) {
-    current.assign(cameFrom[getTileIndex(current)]);
+  let nextFrom = cameFrom.get(getTileIndex(current));
+  while (nextFrom != null) {
+    current.assign(nextFrom);
     invariant(result.size < result.coords.length);
     result.coords[result.size].assign(current);
     ++result.size;
+    nextFrom = cameFrom.get(getTileIndex(current))
   }
 }

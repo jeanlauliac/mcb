@@ -13,8 +13,9 @@ type Bucket<Key, Value> = {
  */
 export default class Map<Key, Value> {
   private _data: Array<Bucket<Key, Value>>;
-  private _seqNumber: number = 1;
   private _keyHash: (key: Key) => number;
+  private _size = 0;
+  private _seqNumber = 1;
 
   constructor(capacity: number,
       valueCtor: () => Value, keyHash: (key: Key) => number) {
@@ -31,12 +32,28 @@ export default class Map<Key, Value> {
 
   clear() {
     ++this._seqNumber;
+    this._size = 0;
+  }
+
+  get size() {
+    return this._size;
+  }
+
+  isEmpty() {
+    return this._size === 0;
+  }
+
+  isFull() {
+    return this._size === this._data.length;
   }
 
   set(key: Key): Value {
     const slot = this._data[this._findSlot(key)];
     invariant(slot.key === key || slot.seqNumber < this._seqNumber,
         'map storage is full');
+    if (slot.key !== key || slot.seqNumber < this._seqNumber) {
+      ++this._size;
+    }
     slot.seqNumber = this._seqNumber;
     slot.key = key;
     return slot.value;
@@ -52,6 +69,7 @@ export default class Map<Key, Value> {
   delete(key: Key): boolean {
     let i = this._findSlot(key);
     if (this._data[i].key !== key) return false;
+    --this._size;
     this._data[i].seqNumber = 0;
     let j = i;
     const size = this._data.length;
@@ -60,7 +78,7 @@ export default class Map<Key, Value> {
       if (this._data[j].seqNumber < this._seqNumber) {
         break;
       }
-      const k = this._keyHash(this._data[j].key) % size;
+      const k = this._getKeySlot(this._data[j].key);
       if ((i<=j) ? ((i<k)&&(k<=j)) : ((i<k)||(k<=j)))
         continue;
       this._swapSlots(i, j);
@@ -71,7 +89,7 @@ export default class Map<Key, Value> {
 
   _findSlot(key: Key): number {
     const size = this._data.length;
-    let i = this._keyHash(key) % size;
+    let i = this._getKeySlot(key);
     let j = 0;
     let slot = this._data[i];
     while (j < size && slot.key !== key &&
@@ -81,6 +99,12 @@ export default class Map<Key, Value> {
       slot = this._data[i];
     }
     return i;
+  }
+
+  _getKeySlot(key: Key): number {
+    const hash = this._keyHash(key);
+    const size = this._data.length;
+    return ((hash % size) + size) % size;
   }
 
   _swapSlots(i: number, j: number): void {
