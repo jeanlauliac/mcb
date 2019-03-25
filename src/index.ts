@@ -142,37 +142,32 @@ function handleRoadMove(ev: LocalMouseEvent) {
       for (let i = 0; i < 4; ++i) {
         neighbourSt[i] = path[Field.getTileIndex(neighbours[i])] != null;
       }
-      if (neighbourSt[2] && neighbourSt[3]) {
-        Field.setTileType(index, "road_turn_left");
-      } else if (neighbourSt[0] && neighbourSt[1]) {
-        Field.setTileType(index, "road_turn_right");
-      } else if (neighbourSt[0] && neighbourSt[3]) {
-        Field.setTileType(index, "road_turn_top");
-      } else if (neighbourSt[1] && neighbourSt[2]) {
-        Field.setTileType(index, "road_turn_bottom");
-      } else if (neighbourSt[1] && neighbourSt[3]) {
-        Field.setTileType(index, "road_v");
-      } else if (neighbourSt[0] && neighbourSt[2]) {
-        Field.setTileType(index, "road_h");
-      } else if (neighbourSt[3]) {
-        Field.setTileType(index, "road_end_tl");
-      } else if (neighbourSt[0]) {
-        Field.setTileType(index, "road_end_tr");
-      } else if (neighbourSt[2]) {
-        Field.setTileType(index, "road_end_bl");
-      } else if (neighbourSt[1]) {
-        Field.setTileType(index, "road_end_br");
-      }
-      // roadProj.projectFrom(coords);
-      // roadProj.col += 1;
-      // coords.unprojectFrom(roadProj);
-      // if (path[Field.getTileIndex(coords)] != null) {
-      //   Field.setTileType(index, "road_h");
-      // } else {
-      //   Field.setTileType(index, "road_v");
-      // }
-
+      Field.setTileType(index, identifyRoadType(neighbourSt));
     }
+  }
+}
+
+function identifyRoadType(ns: Array<boolean>) {
+  if (ns[2] && ns[3]) {
+    return "road_turn_left";
+  } else if (ns[0] && ns[1]) {
+    return "road_turn_right";
+  } else if (ns[0] && ns[3]) {
+    return "road_turn_top";
+  } else if (ns[1] && ns[2]) {
+    return "road_turn_bottom";
+  } else if (ns[1] && ns[3]) {
+    return "road_v";
+  } else if (ns[0] && ns[2]) {
+    return "road_h";
+  } else if (ns[3]) {
+    return "road_end_tl";
+  } else if (ns[0]) {
+    return "road_end_tr";
+  } else if (ns[2]) {
+    return "road_end_bl";
+  } else if (ns[1]) {
+    return "road_end_br";
   }
 }
 
@@ -371,6 +366,7 @@ const TILE_IMG_INDICES: {[key: string]: number} = {
   "road_end_tr": 8,
   "road_end_bl": 9,
   "road_end_br": 10,
+  "road_tee_tl": 11,
   "water": 16,
 };
 
