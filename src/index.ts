@@ -146,6 +146,10 @@ function handleRoadMove(ev: LocalMouseEvent) {
         Field.setTileType(index, "road_turn_left");
       } else if (neighbourSt[0] && neighbourSt[1]) {
         Field.setTileType(index, "road_turn_right");
+      } else if (neighbourSt[0] && neighbourSt[3]) {
+        Field.setTileType(index, "road_turn_top");
+      } else if (neighbourSt[1] && neighbourSt[2]) {
+        Field.setTileType(index, "road_turn_bottom");
       } else if (neighbourSt[0] || neighbourSt[2]) {
         Field.setTileType(index, "road_h");
       } else {
@@ -343,6 +347,8 @@ const TILE_IMG_INDICES: {[key: string]: number} = {
   "road_h": 2,
   "road_turn_left": 3,
   "road_turn_right": 4,
+  "road_turn_top": 5,
+  "road_turn_bottom": 6,
   "water": 16,
 };
 
