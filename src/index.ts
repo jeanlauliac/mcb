@@ -306,14 +306,15 @@ function draw() {
 }
 
 const TILE_IMG_WIDTH = TILE_HALF_WIDTH * 4;
+const TILE_IMG_HEIGHT = TILE_HALF_HEIGHT * 8;
 
 function drawTileImg(canvasCoords: CanvasCoords, index: number) {
   const dx = canvasCoords.x - TILE_HALF_WIDTH;
   const dy = canvasCoords.y - 3 * TILE_HALF_HEIGHT;
   ctx.drawImage(
     tiles,
-    index * TILE_IMG_WIDTH,
-    0,
+    (index % 16) * TILE_IMG_WIDTH,
+    Math.floor(index / 16) * TILE_IMG_HEIGHT,
     TILE_IMG_WIDTH,
     TILE_HALF_HEIGHT * 8,
     dx,
@@ -323,16 +324,19 @@ function drawTileImg(canvasCoords: CanvasCoords, index: number) {
   );
 }
 
+const TILE_IMG_INDICES: {[key: string]: number} = {
+  "road_v": 1,
+  "road_h": 2,
+  "water": 16,
+};
+
 function drawTile(target: Coords) {
   getCanvasCoords(canvasCoords, target);
   const tileIx = Field.getTileIndex(target);
   const tile = Field.getTile(tileIx);
 
-  if (tile.type === "road_v") {
-    drawTileImg(canvasCoords, 1);
-    buildTilePath(canvasCoords);
-  } else if (tile.type === "road_h") {
-    drawTileImg(canvasCoords, 2);
+  if (TILE_IMG_INDICES[tile.type] != null) {
+    drawTileImg(canvasCoords, TILE_IMG_INDICES[tile.type]);
     buildTilePath(canvasCoords);
   } else if (
     tile.type === "grass" &&
