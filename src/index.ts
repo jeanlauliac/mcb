@@ -150,10 +150,18 @@ function handleRoadMove(ev: LocalMouseEvent) {
         Field.setTileType(index, "road_turn_top");
       } else if (neighbourSt[1] && neighbourSt[2]) {
         Field.setTileType(index, "road_turn_bottom");
-      } else if (neighbourSt[0] || neighbourSt[2]) {
-        Field.setTileType(index, "road_h");
-      } else {
+      } else if (neighbourSt[1] && neighbourSt[3]) {
         Field.setTileType(index, "road_v");
+      } else if (neighbourSt[0] && neighbourSt[2]) {
+        Field.setTileType(index, "road_h");
+      } else if (neighbourSt[3]) {
+        Field.setTileType(index, "road_end_tl");
+      } else if (neighbourSt[0]) {
+        Field.setTileType(index, "road_end_tr");
+      } else if (neighbourSt[2]) {
+        Field.setTileType(index, "road_end_bl");
+      } else if (neighbourSt[1]) {
+        Field.setTileType(index, "road_end_br");
       }
       // roadProj.projectFrom(coords);
       // roadProj.col += 1;
@@ -359,6 +367,10 @@ const TILE_IMG_INDICES: {[key: string]: number} = {
   "road_turn_right": 4,
   "road_turn_top": 5,
   "road_turn_bottom": 6,
+  "road_end_tl": 7,
+  "road_end_tr": 8,
+  "road_end_bl": 9,
+  "road_end_br": 10,
   "water": 16,
 };
 
