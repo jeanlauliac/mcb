@@ -2,7 +2,7 @@ import pickTile from "./pickTile";
 import { TILE_HALF_WIDTH, TILE_HALF_HEIGHT } from "./constants";
 import * as Field from "./Field";
 import findShortestPath, { Path } from "./findShortestPath";
-import { Neighbours } from "./findNeighbours";
+import findNeighbours, { Neighbours } from "./findNeighbours";
 import Coords from "./Coords";
 import createArray from "./createArray";
 import Dequeue from "./Dequeue";
@@ -102,6 +102,8 @@ const pickedTile = new Coords();
 const path = new Dequeue(512, () => new Coords());
 
 const roadProj = new Coords();
+const neighbours = createArray(4, () => new Coords());
+const neighbourSt = createArray(4, () => false);
 
 function handleRoadMove(ev: LocalMouseEvent) {
   pickTile(pickedTile, ev.clientX + cameraX, ev.clientY + cameraY);
@@ -136,14 +138,28 @@ function handleRoadMove(ev: LocalMouseEvent) {
     for (let i = 0; i < tileIds.length; ++i) {
       const index = +tileIds[i];
       const coords = path[index];
-      roadProj.projectFrom(coords);
-      roadProj.col += 1;
-      coords.unprojectFrom(roadProj);
-      if (path[Field.getTileIndex(coords)] != null) {
+      findNeighbours(neighbours, coords);
+      for (let i = 0; i < 4; ++i) {
+        neighbourSt[i] = path[Field.getTileIndex(neighbours[i])] != null;
+      }
+      if (neighbourSt[2] && neighbourSt[3]) {
+        Field.setTileType(index, "road_turn_left");
+      } else if (neighbourSt[0] && neighbourSt[1]) {
+        Field.setTileType(index, "road_turn_right");
+      } else if (neighbourSt[0] || neighbourSt[2]) {
         Field.setTileType(index, "road_h");
       } else {
         Field.setTileType(index, "road_v");
       }
+      // roadProj.projectFrom(coords);
+      // roadProj.col += 1;
+      // coords.unprojectFrom(roadProj);
+      // if (path[Field.getTileIndex(coords)] != null) {
+      //   Field.setTileType(index, "road_h");
+      // } else {
+      //   Field.setTileType(index, "road_v");
+      // }
+
     }
   }
 }
@@ -200,8 +216,6 @@ function handleDelete(ev: LocalMouseEvent) {
     }
   }
 }
-
-const neighbours: Neighbours = createArray(4, () => new Coords());
 
 const projFrom = new Coords();
 const projTo = new Coords();
@@ -327,6 +341,8 @@ function drawTileImg(canvasCoords: CanvasCoords, index: number) {
 const TILE_IMG_INDICES: {[key: string]: number} = {
   "road_v": 1,
   "road_h": 2,
+  "road_turn_left": 3,
+  "road_turn_right": 4,
   "water": 16,
 };
 
