@@ -14,7 +14,7 @@ const pending = new MinBinaryHeap(512, () => new Coords());
 const projNeighbour = new Coords();
 const projTo = new Coords();
 const current = new Coords();
-const cameFrom = new Map(512, () => new Coords(), hashInteger);
+const dataByTiles = new Map(512, () => ({predecessor: new Coords(), score: 0}), hashInteger);
 
 export type Path = {
   coords: Array<Coords>;
@@ -27,7 +27,7 @@ export default function findShortestPath(
   to: Coords
 ): void {
   let found = false;
-  cameFrom.clear();
+  dataByTiles.clear();
   pending.clear();
   const pendingIds: { [key: number]: true } = {};
   current.assign(from);
@@ -38,12 +38,13 @@ export default function findShortestPath(
   pending.push(0).assign(current);
   pendingIds[getTileIndex(current)] = true;
 
-  const scores: { [key: number]: number } = {};
-  scores[getTileIndex(current)] = 0;
+  const startTile = dataByTiles.set(getTileIndex(current));
+  startTile.score = 0;
+  startTile.predecessor.assign(current);
 
   projTo.projectFrom(to);
 
-  while (!pending.isEmpty() && !cameFrom.isFull()) {
+  while (!pending.isEmpty() && !dataByTiles.isFull()) {
     current.assign(pending.peek());
     pending.pop();
     if (current.equals(to)) {
@@ -52,6 +53,8 @@ export default function findShortestPath(
     }
     const curTileIx = getTileIndex(current);
     delete pendingIds[curTileIx];
+
+    const score = dataByTiles.get(curTileIx).score + 1;
 
     findNeighbours(neighbours, current);
     for (let i = 0; i < neighbours.length; ++i) {
@@ -69,9 +72,9 @@ export default function findShortestPath(
         continue;
       }
       const { row, col } = neighbour;
-      const score = scores[curTileIx] + 1;
 
-      if (scores[neighbourIx] != null && score >= scores[neighbourIx]) continue;
+      const neighbourData = dataByTiles.get(neighbourIx);
+      if (neighbourData != null && score >= neighbourData.score) continue;
       if (!pendingIds[neighbourIx]) {
         projNeighbour.projectFrom(neighbour);
         const distToEnd =
@@ -82,8 +85,11 @@ export default function findShortestPath(
         pendingIds[neighbourIx] = true;
       }
 
-      if (!cameFrom.isFull()) cameFrom.set(neighbourIx).assign(current);
-      scores[neighbourIx] = score;
+      if (!dataByTiles.isFull()) {
+        const tile = dataByTiles.set(neighbourIx);
+        tile.predecessor.assign(current);
+        tile.score = score;
+      }
     }
   }
   if (!found) {
@@ -93,12 +99,12 @@ export default function findShortestPath(
 
   result.coords[0].assign(current);
   result.size = 1;
-  let nextFrom = cameFrom.get(getTileIndex(current));
-  while (nextFrom != null) {
-    current.assign(nextFrom);
+  let nextTile = dataByTiles.get(getTileIndex(current));
+  while (nextTile != null && nextTile.score > 0) {
+    current.assign(nextTile.predecessor);
     invariant(result.size < result.coords.length);
     result.coords[result.size].assign(current);
     ++result.size;
-    nextFrom = cameFrom.get(getTileIndex(current));
+    nextTile = dataByTiles.get(getTileIndex(current))
   }
 }
