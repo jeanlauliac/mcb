@@ -6,6 +6,7 @@ import invariant from "./invariant";
 import createArray from "./createArray";
 import Map from "./Map";
 import hashInteger from "./hashInteger";
+import Set from './Set';
 
 const { getTileIndex } = Field;
 
@@ -15,6 +16,7 @@ const projNeighbour = new Coords();
 const projTo = new Coords();
 const current = new Coords();
 const dataByTiles = new Map(512, () => ({predecessor: new Coords(), score: 0}), hashInteger);
+const pendingIds = new Set(512, hashInteger);
 
 export type Path = {
   coords: Array<Coords>;
@@ -29,14 +31,15 @@ export default function findShortestPath(
   let found = false;
   dataByTiles.clear();
   pending.clear();
-  const pendingIds: { [key: number]: true } = {};
+  pendingIds.clear();
+
   current.assign(from);
   if (Field.getTile(getTileIndex(current)).type === "water") {
     result.size = 0;
     return;
   }
   pending.push(0).assign(current);
-  pendingIds[getTileIndex(current)] = true;
+  pendingIds.add(getTileIndex(current));
 
   const startTile = dataByTiles.set(getTileIndex(current));
   startTile.score = 0;
@@ -52,7 +55,7 @@ export default function findShortestPath(
       break;
     }
     const curTileIx = getTileIndex(current);
-    delete pendingIds[curTileIx];
+    pendingIds.delete(curTileIx);
 
     const score = dataByTiles.get(curTileIx).score + 1;
 
@@ -75,14 +78,14 @@ export default function findShortestPath(
 
       const neighbourData = dataByTiles.get(neighbourIx);
       if (neighbourData != null && score >= neighbourData.score) continue;
-      if (!pendingIds[neighbourIx]) {
+      if (!pendingIds.has(neighbourIx)) {
         projNeighbour.projectFrom(neighbour);
         const distToEnd =
           Math.abs(projTo.row - projNeighbour.row) +
           Math.abs(projTo.col - projNeighbour.col) * 2;
         const fscore = score + distToEnd;
         pending.push(fscore).assign(neighbour);
-        pendingIds[neighbourIx] = true;
+        pendingIds.add(neighbourIx);
       }
 
       if (!dataByTiles.isFull()) {
