@@ -1,10 +1,12 @@
 import invariant from "./invariant";
 import createArray from "./createArray";
 
-/**
- * A double-ended queue with a static capacity and no dynamic allocations.
- * Can be used as a vector, a stack, etc.
- */
+/*
+
+A double-ended queue with a static capacity and no dynamic allocations.
+Can be used as a vector, a stack, etc.
+
+*/
 export default class Dequeue<Value> {
   private _data: Array<Value>;
   private _begin = 0;

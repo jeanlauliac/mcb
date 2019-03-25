@@ -1,10 +1,12 @@
 import invariant from "./invariant";
 import createArray from "./createArray";
 
-/**
- * A binary heap with min-key property and with no dynamic allocations. That can
- * be used as a priority queue.
- */
+/*
+
+A binary heap with min-key property and with no dynamic allocations. That can be
+used as a priority queue.
+
+*/
 export default class MinBinaryHeap<Value> {
   private _data: Array<[number, Value]>;
   private _size: number;

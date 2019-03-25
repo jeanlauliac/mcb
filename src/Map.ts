@@ -7,9 +7,11 @@ type Bucket<Key, Value> = {
   value: Value;
 };
 
-/**
- * Implement a Map with no dynamic allocations using linear open addressing
- * (https://en.wikipedia.org/wiki/Open_addressing).
+/*
+
+Implement a Map with no dynamic allocations using linear open addressing
+(https://en.wikipedia.org/wiki/Open_addressing).
+
  */
 export default class Map<Key, Value> {
   private _data: Array<Bucket<Key, Value>>;
