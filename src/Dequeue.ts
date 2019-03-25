@@ -11,6 +11,7 @@ export default class Dequeue<Value> {
   private _data: Array<Value>;
   private _begin = 0;
   private _end = 0;
+  private _iter: {next: () => {value: Value, done: boolean}, idx: number};
 
   constructor(capacity: number, valueCtor: () => Value) {
     invariant(
@@ -18,6 +19,22 @@ export default class Dequeue<Value> {
       "capacity must be a positive integer"
     );
     this._data = createArray(capacity, valueCtor);
+
+    const rsp: IteratorResult<Value> = {value: undefined, done: false};
+    this._iter = {
+      idx: 0,
+      next: () => {
+        if (this._iter.idx === this._end) {
+          rsp.value = undefined;
+          rsp.done = true;
+          return rsp;
+        }
+        rsp.value = this._data[this._iter.idx];
+        rsp.done = false;
+        this._iter.idx = (this._iter.idx + 1) % this._data.length;
+        return rsp;
+      }
+    };
   }
 
   clear() {
@@ -72,5 +89,10 @@ export default class Dequeue<Value> {
     invariant(!this.isEmpty(), "Dequeue is already empty");
     ++this._begin;
     if (this._begin === this._data.length) this._begin = 0;
+  }
+
+  [Symbol.iterator]() {
+    this._iter.idx = this._begin;
+    return this._iter;
   }
 }

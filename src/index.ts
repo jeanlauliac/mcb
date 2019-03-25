@@ -179,12 +179,12 @@ const deleteInfo: {
   isDeleting: boolean;
   toCoords: Coords;
   fromCoords: Coords;
-  tiles: { [key: number]: true };
+  tiles: Dequeue<Coords>;
 } = {
   isDeleting: false,
   fromCoords: new Coords(),
   toCoords: new Coords(),
-  tiles: {}
+  tiles: new Dequeue(1024, () => new Coords()),
 };
 
 function handleDelete(ev: LocalMouseEvent) {
@@ -206,17 +206,18 @@ function handleDelete(ev: LocalMouseEvent) {
   if (row !== deleteInfo.toCoords.row || col !== deleteInfo.toCoords.col) {
     deleteInfo.toCoords.row = row;
     deleteInfo.toCoords.col = col;
-    deleteInfo.tiles = findSquare(deleteInfo.fromCoords, deleteInfo.toCoords);
+    findSquare(deleteInfo.tiles, deleteInfo.fromCoords, deleteInfo.toCoords);
   }
   if ((ev.buttons & 1) === 0) {
     deleteInfo.isDeleting = false;
-    const tileIds: Array<string> = Object.keys(deleteInfo.tiles);
-    for (let i = 0; i < tileIds.length; ++i) {
-      const ix = +tileIds[i];
+    while (!deleteInfo.tiles.isEmpty()) {
+      const coords = deleteInfo.tiles.first;
+      const ix = Field.getTileIndex(coords);
       const tile = Field.getTile(ix);
-      if (tile.type === "road") {
-        Field.setTileType(ix, "grass");
-      }
+      // if (tile.type === "road") {
+      Field.setTileType(ix, "grass");
+      // }
+      deleteInfo.tiles.shift();
     }
   }
 }
@@ -226,8 +227,8 @@ const projTo = new Coords();
 const unproj = new Coords();
 const iter = new Coords();
 
-function findSquare(from: Coords, to: Coords) {
-  const result: { [key: number]: true } = {};
+function findSquare(result: Dequeue<Coords>, from: Coords, to: Coords) {
+  result.clear();
   projFrom.projectFrom(from);
   projTo.projectFrom(to);
   if (projFrom.row > projTo.row) {
@@ -252,7 +253,7 @@ function findSquare(from: Coords, to: Coords) {
       ) {
         continue;
       }
-      result[Field.getTileIndex(unproj)] = true;
+      result.push().assign(unproj);
     }
   }
 
@@ -288,6 +289,15 @@ function draw() {
       ++drawCoords.col
     ) {
       drawTile(drawCoords);
+    }
+  }
+
+  if (cursorMode === "delete") {
+    ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+    for (const tile of deleteInfo.tiles) {
+      getCanvasCoords(canvasCoords, tile);
+      buildTilePath(canvasCoords);
+      ctx.fill();
     }
   }
 
@@ -389,13 +399,6 @@ function drawTile(target: Coords) {
 
   if (cursorMode === "road" && roadSelectTile.current.equals(target)) {
     ctx.fillStyle = "rgba(0, 255, 0, 0.5)";
-    ctx.fill();
-  }
-  if (
-    (cursorMode === "delete" && deleteInfo.toCoords.equals(target)) ||
-    (deleteInfo.isDeleting && deleteInfo.tiles[tileIx])
-  ) {
-    ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
     ctx.fill();
   }
 }
