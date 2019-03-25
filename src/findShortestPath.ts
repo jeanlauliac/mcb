@@ -6,8 +6,8 @@ import invariant from "./invariant";
 import createArray from "./createArray";
 import Map from "./Map";
 import hashInteger from "./hashInteger";
-import Set from './Set';
-import Dequeue from './Dequeue';
+import Set from "./Set";
+import Dequeue from "./Dequeue";
 
 const { getTileIndex } = Field;
 
@@ -16,7 +16,11 @@ const pending = new MinBinaryHeap(512, () => new Coords());
 const projNeighbour = new Coords();
 const projTo = new Coords();
 const current = new Coords();
-const dataByTiles = new Map(1024, () => ({predecessor: new Coords(), score: 0}), hashInteger);
+const dataByTiles = new Map(
+  1024,
+  () => ({ predecessor: new Coords(), score: 0 }),
+  hashInteger
+);
 const pendingIds = new Set(1024, hashInteger);
 
 export type Path = {
@@ -102,6 +106,6 @@ export default function findShortestPath(
   let nextTile = dataByTiles.get(getTileIndex(current));
   while (nextTile != null && nextTile.score > 0) {
     result.push().assign(nextTile.predecessor);
-    nextTile = dataByTiles.get(getTileIndex(nextTile.predecessor))
+    nextTile = dataByTiles.get(getTileIndex(nextTile.predecessor));
   }
 }

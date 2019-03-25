@@ -1,4 +1,4 @@
-import Map from './Map';
+import Map from "./Map";
 
 export default class Set<Key> {
   private _store: Map<Key, true>;

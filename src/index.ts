@@ -99,7 +99,7 @@ const roadSelectTile: {
 } = { current: new Coords(), isBuilding: false, from: new Coords(), path: {} };
 
 const pickedTile = new Coords();
-const path = new Dequeue(512, () => new Coords);
+const path = new Dequeue(512, () => new Coords());
 
 const roadProj = new Coords();
 
