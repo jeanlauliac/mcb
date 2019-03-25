@@ -7,8 +7,8 @@ import createArray from "./createArray";
  */
 export default class Dequeue<Value> {
   private _data: Array<Value>;
-  private _begin: number = 0;
-  private _end: number = 0;
+  private _begin = 0;
+  private _end = 0;
 
   constructor(capacity: number, valueCtor: () => Value) {
     invariant(
@@ -16,6 +16,10 @@ export default class Dequeue<Value> {
       "capacity must be a positive integer"
     );
     this._data = createArray(capacity, valueCtor);
+  }
+
+  clear() {
+    this._begin = this._end = 0;
   }
 
   get size() {

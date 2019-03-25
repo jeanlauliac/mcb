@@ -99,13 +99,7 @@ const roadSelectTile: {
 } = { current: new Coords(), isBuilding: false, from: new Coords(), path: {} };
 
 const pickedTile = new Coords();
-const path: Path = {
-  coords: [],
-  size: 0
-};
-for (let i = 0; i < 512; ++i) {
-  path.coords.push(new Coords());
-}
+const path = new Dequeue(512, () => new Coords);
 
 const roadProj = new Coords();
 
@@ -127,11 +121,12 @@ function handleRoadMove(ev: LocalMouseEvent) {
     roadSelectTile.current.assign(pickedTile);
     findShortestPath(path, roadSelectTile.from, roadSelectTile.current);
     roadSelectTile.path = {};
-    for (let i = 0; i < path.size; ++i) {
+    while (!path.isEmpty()) {
       const cc = (roadSelectTile.path[
-        Field.getTileIndex(path.coords[i])
+        Field.getTileIndex(path.first)
       ] = new Coords());
-      cc.assign(path.coords[i]);
+      cc.assign(path.first);
+      path.shift();
     }
   }
   if ((ev.buttons & 1) === 0) {

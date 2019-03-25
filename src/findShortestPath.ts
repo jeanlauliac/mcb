@@ -7,6 +7,7 @@ import createArray from "./createArray";
 import Map from "./Map";
 import hashInteger from "./hashInteger";
 import Set from './Set';
+import Dequeue from './Dequeue';
 
 const { getTileIndex } = Field;
 
@@ -15,8 +16,8 @@ const pending = new MinBinaryHeap(512, () => new Coords());
 const projNeighbour = new Coords();
 const projTo = new Coords();
 const current = new Coords();
-const dataByTiles = new Map(512, () => ({predecessor: new Coords(), score: 0}), hashInteger);
-const pendingIds = new Set(512, hashInteger);
+const dataByTiles = new Map(1024, () => ({predecessor: new Coords(), score: 0}), hashInteger);
+const pendingIds = new Set(1024, hashInteger);
 
 export type Path = {
   coords: Array<Coords>;
@@ -24,7 +25,7 @@ export type Path = {
 };
 
 export default function findShortestPath(
-  result: Path,
+  result: Dequeue<Coords>,
   from: Coords,
   to: Coords
 ): void {
@@ -32,10 +33,10 @@ export default function findShortestPath(
   dataByTiles.clear();
   pending.clear();
   pendingIds.clear();
+  result.clear();
 
   current.assign(from);
   if (Field.getTile(getTileIndex(current)).type === "water") {
-    result.size = 0;
     return;
   }
   pending.push(0).assign(current);
@@ -95,19 +96,12 @@ export default function findShortestPath(
       }
     }
   }
-  if (!found) {
-    result.size = 0;
-    return;
-  }
+  if (!found) return;
 
-  result.coords[0].assign(current);
-  result.size = 1;
+  result.push().assign(current);
   let nextTile = dataByTiles.get(getTileIndex(current));
   while (nextTile != null && nextTile.score > 0) {
-    current.assign(nextTile.predecessor);
-    invariant(result.size < result.coords.length);
-    result.coords[result.size].assign(current);
-    ++result.size;
-    nextTile = dataByTiles.get(getTileIndex(current))
+    result.push().assign(nextTile.predecessor);
+    nextTile = dataByTiles.get(getTileIndex(nextTile.predecessor))
   }
 }
