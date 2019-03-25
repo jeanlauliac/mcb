@@ -139,36 +139,46 @@ function handleRoadMove(ev: LocalMouseEvent) {
       const index = +tileIds[i];
       const coords = path[index];
       findNeighbours(neighbours, coords);
+      const tile = Field.getTile(index);
       for (let i = 0; i < 4; ++i) {
-        neighbourSt[i] = path[Field.getTileIndex(neighbours[i])] != null;
+        const ni = Field.getTileIndex(neighbours[i]);
+        neighbourSt[i] = path[ni] != null;
       }
-      Field.setTileType(index, identifyRoadType(neighbourSt));
+      Field.setTileType(index, identifyRoadType(neighbourSt, tile.type));
     }
   }
 }
 
-function identifyRoadType(ns: Array<boolean>) {
-  if (ns[2] && ns[3]) {
-    return "road_turn_left";
-  } else if (ns[0] && ns[1]) {
-    return "road_turn_right";
-  } else if (ns[0] && ns[3]) {
-    return "road_turn_top";
-  } else if (ns[1] && ns[2]) {
-    return "road_turn_bottom";
-  } else if (ns[1] && ns[3]) {
-    return "road_v";
-  } else if (ns[0] && ns[2]) {
-    return "road_h";
-  } else if (ns[3]) {
-    return "road_end_tl";
-  } else if (ns[0]) {
-    return "road_end_tr";
-  } else if (ns[2]) {
-    return "road_end_bl";
-  } else if (ns[1]) {
-    return "road_end_br";
+const ROAD_TYPE_TABLE: {[key: number]: string} = {
+  0b0011: "road_turn_left",
+  0b1100: "road_turn_right",
+  0b1001: "road_turn_top",
+  0b0110: "road_turn_bottom",
+  0b0101: "road_v",
+  0b1010: "road_h",
+  0b0001: "road_end_tl",
+  0b1000: "road_end_tr",
+  0b0010: "road_end_bl",
+  0b0100: "road_end_br",
+  0b1011: "road_tee_tl",
+  0b1101: "road_tee_tr",
+  0b0111: "road_tee_bl",
+  0b1110: "road_tee_br",
+  0b1111: "road_cross",
+};
+
+const ROAD_TYPE_REVERSE_TABLE = (() => {
+  const result: {[key: string]: number} = {};
+  for (const key in ROAD_TYPE_TABLE) {
+    result[ROAD_TYPE_TABLE[key]] = Number(key);
   }
+  return result;
+})();
+
+function identifyRoadType(ns: Array<boolean>, currentType: string) {
+  const currentMask = ROAD_TYPE_REVERSE_TABLE[currentType] || 0;
+  const newMask = (Number(ns[0]) << 3) | (Number(ns[1]) << 2) | (Number(ns[2]) << 1) | Number(ns[3]);
+  return ROAD_TYPE_TABLE[currentMask | newMask] || "grass";
 }
 
 const farmCoords = new Coords();
@@ -217,9 +227,9 @@ function handleDelete(ev: LocalMouseEvent) {
       const coords = deleteInfo.tiles.first;
       const ix = Field.getTileIndex(coords);
       const tile = Field.getTile(ix);
-      // if (tile.type === "road") {
-      Field.setTileType(ix, "grass");
-      // }
+      if (ROAD_TYPE_REVERSE_TABLE[tile.type] != null) {
+        Field.setTileType(ix, "grass");
+      }
       deleteInfo.tiles.shift();
     }
   }
@@ -367,6 +377,10 @@ const TILE_IMG_INDICES: {[key: string]: number} = {
   "road_end_bl": 9,
   "road_end_br": 10,
   "road_tee_tl": 11,
+  "road_tee_tr": 12,
+  "road_tee_bl": 13,
+  "road_tee_br": 14,
+  "road_cross": 15,
   "water": 16,
 };
 
