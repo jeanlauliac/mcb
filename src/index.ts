@@ -149,7 +149,7 @@ function handleRoadMove(ev: LocalMouseEvent) {
   }
 }
 
-const ROAD_TYPE_TABLE: {[key: number]: string} = {
+const ROAD_TYPE_TABLE: { [key: number]: string } = {
   0b0011: "road_turn_left",
   0b1100: "road_turn_right",
   0b1001: "road_turn_top",
@@ -164,11 +164,11 @@ const ROAD_TYPE_TABLE: {[key: number]: string} = {
   0b1101: "road_tee_tr",
   0b0111: "road_tee_bl",
   0b1110: "road_tee_br",
-  0b1111: "road_cross",
+  0b1111: "road_cross"
 };
 
 const ROAD_TYPE_REVERSE_TABLE = (() => {
-  const result: {[key: string]: number} = {};
+  const result: { [key: string]: number } = {};
   for (const key in ROAD_TYPE_TABLE) {
     result[ROAD_TYPE_TABLE[key]] = Number(key);
   }
@@ -177,7 +177,11 @@ const ROAD_TYPE_REVERSE_TABLE = (() => {
 
 function identifyRoadType(ns: Array<boolean>, currentType: string) {
   const currentMask = ROAD_TYPE_REVERSE_TABLE[currentType] || 0;
-  const newMask = (Number(ns[0]) << 3) | (Number(ns[1]) << 2) | (Number(ns[2]) << 1) | Number(ns[3]);
+  const newMask =
+    (Number(ns[0]) << 3) |
+    (Number(ns[1]) << 2) |
+    (Number(ns[2]) << 1) |
+    Number(ns[3]);
   return ROAD_TYPE_TABLE[currentMask | newMask] || "grass";
 }
 
@@ -197,7 +201,7 @@ const deleteInfo: {
   isDeleting: false,
   fromCoords: new Coords(),
   toCoords: new Coords(),
-  tiles: new Dequeue(1024, () => new Coords()),
+  tiles: new Dequeue(1024, () => new Coords())
 };
 
 function handleDelete(ev: LocalMouseEvent) {
@@ -365,23 +369,23 @@ function drawTileImg(canvasCoords: CanvasCoords, index: number) {
   );
 }
 
-const TILE_IMG_INDICES: {[key: string]: number} = {
-  "road_v": 1,
-  "road_h": 2,
-  "road_turn_left": 3,
-  "road_turn_right": 4,
-  "road_turn_top": 5,
-  "road_turn_bottom": 6,
-  "road_end_tl": 7,
-  "road_end_tr": 8,
-  "road_end_bl": 9,
-  "road_end_br": 10,
-  "road_tee_tl": 11,
-  "road_tee_tr": 12,
-  "road_tee_bl": 13,
-  "road_tee_br": 14,
-  "road_cross": 15,
-  "water": 16,
+const TILE_IMG_INDICES: { [key: string]: number } = {
+  road_v: 1,
+  road_h: 2,
+  road_turn_left: 3,
+  road_turn_right: 4,
+  road_turn_top: 5,
+  road_turn_bottom: 6,
+  road_end_tl: 7,
+  road_end_tr: 8,
+  road_end_bl: 9,
+  road_end_br: 10,
+  road_tee_tl: 11,
+  road_tee_tr: 12,
+  road_tee_bl: 13,
+  road_tee_br: 14,
+  road_cross: 15,
+  water: 16
 };
 
 function drawTile(target: Coords) {

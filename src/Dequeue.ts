@@ -11,7 +11,7 @@ export default class Dequeue<Value> {
   private _data: Array<Value>;
   private _begin = 0;
   private _end = 0;
-  private _iter: {next: () => {value: Value, done: boolean}, idx: number};
+  private _iter: { next: () => { value: Value; done: boolean }; idx: number };
 
   constructor(capacity: number, valueCtor: () => Value) {
     invariant(
@@ -20,7 +20,7 @@ export default class Dequeue<Value> {
     );
     this._data = createArray(capacity, valueCtor);
 
-    const rsp: IteratorResult<Value> = {value: undefined, done: false};
+    const rsp: IteratorResult<Value> = { value: undefined, done: false };
     this._iter = {
       idx: 0,
       next: () => {
