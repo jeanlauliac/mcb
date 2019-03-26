@@ -6,6 +6,8 @@ import findNeighbours, { Neighbours } from "./findNeighbours";
 import Coords from "./Coords";
 import createArray from "./createArray";
 import Dequeue from "./Dequeue";
+import hashInteger from "./hashInteger";
+import Map from "./Map";
 
 const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
@@ -95,8 +97,12 @@ const roadSelectTile: {
   current: Coords;
   isBuilding: boolean;
   from: Coords;
-  path: { [key: number]: Coords };
-} = { current: new Coords(), isBuilding: false, from: new Coords(), path: {} };
+  tiles: Dequeue<{coords: Coords, type: string}>;
+  tileMap: Map<number, {type: string}>;
+} = { current: new Coords(), isBuilding: false, from: new Coords(),
+  tiles: new Dequeue(512, () => ({coords: new Coords(), type: ''})),
+  tileMap: new Map(512, () => ({type: ''}), hashInteger),
+};
 
 const pickedTile = new Coords();
 const path = new Dequeue(512, () => new Coords());
@@ -113,7 +119,8 @@ function handleRoadMove(ev: LocalMouseEvent) {
       roadSelectTile.from.assign(pickedTile);
       roadSelectTile.current.row = -1;
       roadSelectTile.current.col = -1;
-      roadSelectTile.path = {};
+      roadSelectTile.tiles.clear();
+      roadSelectTile.tileMap.clear();
     } else {
       roadSelectTile.current.assign(pickedTile);
       return;
@@ -122,29 +129,36 @@ function handleRoadMove(ev: LocalMouseEvent) {
   if (!roadSelectTile.current.equals(pickedTile)) {
     roadSelectTile.current.assign(pickedTile);
     findShortestPath(path, roadSelectTile.from, roadSelectTile.current);
-    roadSelectTile.path = {};
+
+    roadSelectTile.tiles.clear();
+    roadSelectTile.tileMap.clear();
+
+    let prevIndex = -1;
     while (!path.isEmpty()) {
-      const cc = (roadSelectTile.path[
-        Field.getTileIndex(path.first)
-      ] = new Coords());
-      cc.assign(path.first);
+      const coords = path.first;
+      const roadTile = roadSelectTile.tiles.push();
+      roadTile.coords.assign(coords);
       path.shift();
+
+      const index = Field.getTileIndex(coords);
+      findNeighbours(neighbours, coords);
+      for (let i = 0; i < 4; ++i) {
+        const ni = Field.getTileIndex(neighbours[i]);
+        const nextIndex = path.isEmpty() ? -1 : Field.getTileIndex(path.first);
+        neighbourSt[i] = ni === prevIndex || ni === nextIndex;
+      }
+
+      const tile = Field.getTile(index);
+      roadTile.type = identifyRoadType(neighbourSt, tile.type);
+      roadSelectTile.tileMap.set(index).type = roadTile.type;
+      prevIndex = index;
     }
   }
   if ((ev.buttons & 1) === 0) {
     roadSelectTile.isBuilding = false;
-    const { path } = roadSelectTile;
-    const tileIds: Array<string> = Object.keys(path);
-    for (let i = 0; i < tileIds.length; ++i) {
-      const index = +tileIds[i];
-      const coords = path[index];
-      findNeighbours(neighbours, coords);
-      const tile = Field.getTile(index);
-      for (let i = 0; i < 4; ++i) {
-        const ni = Field.getTileIndex(neighbours[i]);
-        neighbourSt[i] = path[ni] != null;
-      }
-      Field.setTileType(index, identifyRoadType(neighbourSt, tile.type));
+    const { tiles } = roadSelectTile;
+    for (const tile of tiles) {
+      Field.setTileType(Field.getTileIndex(tile.coords), tile.type);
     }
   }
 }
@@ -392,28 +406,22 @@ function drawTile(target: Coords) {
   getCanvasCoords(canvasCoords, target);
   const tileIx = Field.getTileIndex(target);
   const tile = Field.getTile(tileIx);
+  let type = tile.type;
 
-  if (TILE_IMG_INDICES[tile.type] != null) {
-    drawTileImg(canvasCoords, TILE_IMG_INDICES[tile.type]);
+  if (roadSelectTile.isBuilding) {
+    const roadTile = roadSelectTile.tileMap.get(tileIx);
+    if (roadTile != null) type = roadTile.type;
+  }
+
+  if (TILE_IMG_INDICES[type] != null) {
+    drawTileImg(canvasCoords, TILE_IMG_INDICES[type]);
     buildTilePath(canvasCoords);
-  } else if (
-    tile.type === "grass" &&
-    !(roadSelectTile.isBuilding && roadSelectTile.path[tileIx])
-  ) {
+  } else if (type === "grass") {
     drawTileImg(canvasCoords, 0);
     buildTilePath(canvasCoords);
   } else {
     ctx.fillStyle = (() => {
-      if (roadSelectTile.isBuilding && roadSelectTile.path[tileIx]) {
-        return "#f5f5d2";
-      }
-      switch (tile.type) {
-        case "grass":
-          return "#b1e4a6";
-        case "water":
-          return "#2d5cab";
-        case "road":
-          return "#f5f5d2";
+      switch (type) {
         default:
           return "#000";
       }
