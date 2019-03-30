@@ -77,6 +77,7 @@ function update() {
     switch (keysPresses[i]) {
       case "r":
         cursorMode = "road";
+        roadSelectTile.isBuilding = false;
         break;
       case "d":
         cursorMode = "delete";
@@ -411,30 +412,19 @@ function drawTile(target: Coords) {
   const tile = Field.getTile(tileIx);
   let type = tile.type;
 
-  if (roadSelectTile.isBuilding) {
+  if (cursorMode === "road" && roadSelectTile.isBuilding) {
     const roadTile = roadSelectTile.tileMap.get(tileIx);
     if (roadTile != null) type = roadTile.type;
   }
 
   if (TILE_IMG_INDICES[type] != null) {
     drawTileImg(canvasCoords, TILE_IMG_INDICES[type]);
-    buildTilePath(canvasCoords);
   } else if (type === "grass") {
     drawTileImg(canvasCoords, 0);
-    buildTilePath(canvasCoords);
-  } else {
-    ctx.fillStyle = (() => {
-      switch (type) {
-        default:
-          return "#000";
-      }
-    })();
-    buildTilePath(canvasCoords);
-    ctx.fill();
-    ctx.stroke();
   }
 
   if (cursorMode === "road" && roadSelectTile.current.equals(target)) {
+    buildTilePath(canvasCoords);
     ctx.fillStyle = "rgba(0, 255, 0, 0.5)";
     ctx.fill();
   }
