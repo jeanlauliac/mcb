@@ -72,12 +72,14 @@ function update() {
         handleDelete(ev);
         break;
     }
+    Object.assign(lastMouseEv, ev);
   }
   for (let i = 0; i < keyPressCount; ++i) {
     switch (keysPresses[i]) {
       case "r":
         cursorMode = "road";
         roadSelectTile.isBuilding = false;
+        handleRoadMove(lastMouseEv);
         break;
       case "d":
         cursorMode = "delete";
