@@ -70,10 +70,10 @@ export default function findShortestPath(
     for (let i = 0; i < neighbours.length; ++i) {
       const neighbour = neighbours[i];
       if (
-        neighbour.row < 0 ||
-        neighbour.row >= Field.height ||
-        neighbour.col < 0 ||
-        neighbour.col >= Field.width
+        neighbour.row < 1 ||
+        neighbour.row >= Field.height - 1 ||
+        neighbour.col < 1 ||
+        neighbour.col >= Field.width - 1
       ) {
         continue;
       }
