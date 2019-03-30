@@ -18,7 +18,7 @@ const projTo = new Coords();
 const current = new Coords();
 const dataByTiles = new Map(
   1024,
-  () => ({ predecessor: new Coords(), score: 0 }),
+  () => ({ predecessor: new Coords(), score: 0, direction: 0 }),
   hashInteger
 );
 const pendingIds = new Set(1024, hashInteger);
@@ -49,6 +49,7 @@ export default function findShortestPath(
   const startTile = dataByTiles.set(getTileIndex(current));
   startTile.score = 0;
   startTile.predecessor.assign(current);
+  startTile.direction = -1;
 
   projTo.projectFrom(to);
 
@@ -62,7 +63,8 @@ export default function findShortestPath(
     const curTileIx = getTileIndex(current);
     pendingIds.delete(curTileIx);
 
-    const score = dataByTiles.get(curTileIx).score + 1;
+    const tile = dataByTiles.get(curTileIx);
+    const { direction } = tile;
 
     findNeighbours(neighbours, current);
     for (let i = 0; i < neighbours.length; ++i) {
@@ -75,11 +77,17 @@ export default function findShortestPath(
       ) {
         continue;
       }
+
+      const turn = direction >= 0 ? (4 + direction - i) % 4 : 0;
+      if (turn === 2) continue;
+
       const neighbourIx = getTileIndex(neighbour);
       if (Field.getTile(neighbourIx).type === "water") {
         continue;
       }
       const { row, col } = neighbour;
+
+      const score = tile.score + [1.1, 1, 1, 1.2][turn];
 
       const neighbourData = dataByTiles.get(neighbourIx);
       if (neighbourData != null && score >= neighbourData.score) continue;
@@ -87,7 +95,7 @@ export default function findShortestPath(
         projNeighbour.projectFrom(neighbour);
         const distToEnd =
           Math.abs(projTo.row - projNeighbour.row) +
-          Math.abs(projTo.col - projNeighbour.col) * 2;
+          Math.abs(projTo.col - projNeighbour.col);
         const fscore = score + distToEnd;
         pending.push(fscore).assign(neighbour);
         pendingIds.add(neighbourIx);
@@ -97,6 +105,7 @@ export default function findShortestPath(
         const tile = dataByTiles.set(neighbourIx);
         tile.predecessor.assign(current);
         tile.score = score;
+        tile.direction = i;
       }
     }
   }

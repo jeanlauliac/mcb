@@ -97,11 +97,14 @@ const roadSelectTile: {
   current: Coords;
   isBuilding: boolean;
   from: Coords;
-  tiles: Dequeue<{coords: Coords, type: string}>;
-  tileMap: Map<number, {type: string}>;
-} = { current: new Coords(), isBuilding: false, from: new Coords(),
-  tiles: new Dequeue(512, () => ({coords: new Coords(), type: ''})),
-  tileMap: new Map(512, () => ({type: ''}), hashInteger),
+  tiles: Dequeue<{ coords: Coords; type: string }>;
+  tileMap: Map<number, { type: string }>;
+} = {
+  current: new Coords(),
+  isBuilding: false,
+  from: new Coords(),
+  tiles: new Dequeue(512, () => ({ coords: new Coords(), type: "" })),
+  tileMap: new Map(512, () => ({ type: "" }), hashInteger)
 };
 
 const pickedTile = new Coords();
