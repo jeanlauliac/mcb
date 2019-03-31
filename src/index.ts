@@ -8,6 +8,9 @@ import createArray from "./createArray";
 import Dequeue from "./Dequeue";
 import hashInteger from "./hashInteger";
 import Map from "./Map";
+import { LocalMouseEvent } from './MouseEvents';
+import RoadBuilder, {ROAD_TYPE_REVERSE_TABLE} from './RoadBuilder';
+import ScreenCoords from './ScreenCoords';
 
 const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
@@ -42,18 +45,20 @@ function step(timestamp: number) {
   draw();
 }
 
-let cameraX = 70;
-let cameraY = 50;
+let camera = new ScreenCoords();
+camera.set(70, 50);
+
 let cursorMode = "move";
 let lastMouseEv = { clientX: 0, clientY: 0, buttons: 0 };
 let hasMouseEv = false;
 
-type LocalMouseEvent = { clientX: number; clientY: number; buttons: number };
 const mouseEvents = new Dequeue(8, () => ({
   clientX: 0,
   clientY: 0,
   buttons: 0
 }));
+
+const roadBuilder = new RoadBuilder();
 
 function update() {
   for (; !mouseEvents.isEmpty(); mouseEvents.shift()) {
@@ -63,7 +68,7 @@ function update() {
         handleCameraMove(ev);
         break;
       case "road":
-        handleRoadMove(ev);
+        roadBuilder.handleMouseEvent(ev, camera);
         break;
       case "farm":
         handleFarmMove(ev);
@@ -78,8 +83,7 @@ function update() {
     switch (keysPresses[i]) {
       case "r":
         cursorMode = "road";
-        roadSelectTile.isBuilding = false;
-        handleRoadMove(lastMouseEv);
+        roadBuilder.enable(lastMouseEv, camera);
         break;
       case "d":
         cursorMode = "delete";
@@ -96,119 +100,12 @@ function update() {
   keyPressCount = 0;
 }
 
-const roadSelectTile: {
-  current: Coords;
-  isBuilding: boolean;
-  from: Coords;
-  tiles: Dequeue<{ coords: Coords; type: string }>;
-  tileMap: Map<number, { type: string }>;
-} = {
-  current: new Coords(),
-  isBuilding: false,
-  from: new Coords(),
-  tiles: new Dequeue(512, () => ({ coords: new Coords(), type: "" })),
-  tileMap: new Map(512, () => ({ type: "" }), hashInteger)
-};
-
 const pickedTile = new Coords();
-const path = new Dequeue(512, () => new Coords());
-
-const roadProj = new Coords();
-const neighbours = createArray(4, () => new Coords());
-const neighbourSt = createArray(4, () => false);
-
-function handleRoadMove(ev: LocalMouseEvent) {
-  pickTile(pickedTile, ev.clientX + cameraX, ev.clientY + cameraY);
-  if (!roadSelectTile.isBuilding) {
-    if ((ev.buttons & 1) !== 0) {
-      roadSelectTile.isBuilding = true;
-      roadSelectTile.from.assign(pickedTile);
-      roadSelectTile.current.row = -1;
-      roadSelectTile.current.col = -1;
-      roadSelectTile.tiles.clear();
-      roadSelectTile.tileMap.clear();
-    } else {
-      roadSelectTile.current.assign(pickedTile);
-      return;
-    }
-  }
-  if (!roadSelectTile.current.equals(pickedTile)) {
-    roadSelectTile.current.assign(pickedTile);
-    findShortestPath(path, roadSelectTile.from, roadSelectTile.current);
-
-    roadSelectTile.tiles.clear();
-    roadSelectTile.tileMap.clear();
-
-    let prevIndex = -1;
-    while (!path.isEmpty()) {
-      const coords = path.first;
-      const roadTile = roadSelectTile.tiles.push();
-      roadTile.coords.assign(coords);
-      path.shift();
-
-      const index = Field.getTileIndex(coords);
-      findNeighbours(neighbours, coords);
-      for (let i = 0; i < 4; ++i) {
-        const ni = Field.getTileIndex(neighbours[i]);
-        const nextIndex = path.isEmpty() ? -1 : Field.getTileIndex(path.first);
-        neighbourSt[i] = ni === prevIndex || ni === nextIndex;
-      }
-
-      const tile = Field.getTile(index);
-      roadTile.type = identifyRoadType(neighbourSt, tile.type);
-      roadSelectTile.tileMap.set(index).type = roadTile.type;
-      prevIndex = index;
-    }
-  }
-  if ((ev.buttons & 1) === 0) {
-    roadSelectTile.isBuilding = false;
-    const { tiles } = roadSelectTile;
-    for (const tile of tiles) {
-      Field.setTileType(Field.getTileIndex(tile.coords), tile.type);
-    }
-  }
-}
-
-const ROAD_TYPE_TABLE: { [key: number]: string } = {
-  0b0011: "road_turn_left",
-  0b1100: "road_turn_right",
-  0b1001: "road_turn_top",
-  0b0110: "road_turn_bottom",
-  0b0101: "road_v",
-  0b1010: "road_h",
-  0b0001: "road_end_tl",
-  0b1000: "road_end_tr",
-  0b0010: "road_end_bl",
-  0b0100: "road_end_br",
-  0b1011: "road_tee_tl",
-  0b1101: "road_tee_tr",
-  0b0111: "road_tee_bl",
-  0b1110: "road_tee_br",
-  0b1111: "road_cross"
-};
-
-const ROAD_TYPE_REVERSE_TABLE = (() => {
-  const result: { [key: string]: number } = {};
-  for (const key in ROAD_TYPE_TABLE) {
-    result[ROAD_TYPE_TABLE[key]] = Number(key);
-  }
-  return result;
-})();
-
-function identifyRoadType(ns: Array<boolean>, currentType: string) {
-  const currentMask = ROAD_TYPE_REVERSE_TABLE[currentType] || 0;
-  const newMask =
-    (Number(ns[0]) << 3) |
-    (Number(ns[1]) << 2) |
-    (Number(ns[2]) << 1) |
-    Number(ns[3]);
-  return ROAD_TYPE_TABLE[currentMask | newMask] || "grass";
-}
 
 const farmCoords = new Coords();
 
 function handleFarmMove(ev: LocalMouseEvent) {
-  pickTile(pickedTile, ev.clientX + cameraX, ev.clientY + cameraY);
+  pickTile(pickedTile, ev.clientX + camera.x, ev.clientY + camera.y);
   farmCoords.assign(pickedTile);
 }
 
@@ -225,7 +122,7 @@ const deleteInfo: {
 };
 
 function handleDelete(ev: LocalMouseEvent) {
-  pickTile(pickedTile, ev.clientX + cameraX, ev.clientY + cameraY);
+  pickTile(pickedTile, ev.clientX + camera.x, ev.clientY + camera.y);
   const { row, col } = pickedTile;
   if (!deleteInfo.isDeleting) {
     if ((ev.buttons & 1) !== 0) {
@@ -310,8 +207,8 @@ function draw() {
   ctx.strokeStyle = "#a0a0a0";
   ctx.lineWidth = 1;
 
-  pickTile(topLeftCoords, cameraX, cameraY);
-  pickTile(bottomRightCoords, cameraX + width, cameraY + height);
+  pickTile(topLeftCoords, camera.x, camera.y);
+  pickTile(bottomRightCoords, camera.x + width, camera.y + height);
   const maxRow = Math.min(bottomRightCoords.row + 2, Field.height);
   const maxCol = Math.min(bottomRightCoords.col + 2, Field.width);
 
@@ -414,8 +311,9 @@ function drawTile(target: Coords) {
   const tile = Field.getTile(tileIx);
   let type = tile.type;
 
-  if (cursorMode === "road" && roadSelectTile.isBuilding) {
-    const roadTile = roadSelectTile.tileMap.get(tileIx);
+  const {tileMap} = roadBuilder;
+  if (cursorMode === "road" && tileMap != null) {
+    const roadTile = tileMap.get(tileIx);
     if (roadTile != null) type = roadTile.type;
   }
 
@@ -425,7 +323,7 @@ function drawTile(target: Coords) {
     drawTileImg(canvasCoords, 0);
   }
 
-  if (cursorMode === "road" && roadSelectTile.current.equals(target)) {
+  if (cursorMode === "road" && roadBuilder.currentCoords.equals(target)) {
     buildTilePath(canvasCoords);
     ctx.fillStyle = "rgba(0, 255, 0, 0.5)";
     ctx.fill();
@@ -434,8 +332,8 @@ function drawTile(target: Coords) {
 
 function getCanvasCoords(result: CanvasCoords, coords: Coords) {
   const { row, col } = coords;
-  result.x = col * TILE_HALF_WIDTH * 2 + (row % 2) * TILE_HALF_WIDTH - cameraX;
-  result.y = row * TILE_HALF_HEIGHT - cameraY;
+  result.x = col * TILE_HALF_WIDTH * 2 + (row % 2) * TILE_HALF_WIDTH - camera.x;
+  result.y = row * TILE_HALF_HEIGHT - camera.y;
 }
 
 function buildTilePath(coords: CanvasCoords): void {
@@ -469,8 +367,8 @@ function handleCameraMove(ev: LocalMouseEvent) {
     if ((ev.buttons & 1) !== 0) {
       camMove.x = ev.clientX;
       camMove.y = ev.clientY;
-      camMove.camX = cameraX;
-      camMove.camY = cameraY;
+      camMove.camX = camera.x;
+      camMove.camY = camera.y;
       camMove.moving = true;
     }
     return;
@@ -480,15 +378,15 @@ function handleCameraMove(ev: LocalMouseEvent) {
     return;
   }
 
-  cameraX = camMove.camX + camMove.x - ev.clientX;
-  if (cameraX < 0) cameraX = 0;
+  camera.x = camMove.camX + camMove.x - ev.clientX;
+  if (camera.x < 0) camera.x = 0;
   const camMaxX = (Field.width - 1) * TILE_HALF_WIDTH * 2 - width;
-  if (cameraX > camMaxX) cameraX = camMaxX;
+  if (camera.x > camMaxX) camera.x = camMaxX;
 
-  cameraY = camMove.camY + camMove.y - ev.clientY;
-  if (cameraY < 0) cameraY = 0;
+  camera.y = camMove.camY + camMove.y - ev.clientY;
+  if (camera.y < 0) camera.y = 0;
   const camMaxY = (Field.height - 1) * TILE_HALF_HEIGHT - height;
-  if (cameraY > camMaxY) cameraY = camMaxY;
+  if (camera.y > camMaxY) camera.y = camMaxY;
 }
 
 const keysPresses = createArray<string>(8, () => "");

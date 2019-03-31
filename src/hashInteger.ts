@@ -269,9 +269,11 @@ const table = [
 
 export default function hashInteger(n: number): number {
   let result = 0;
-  while (n > 0) {
-    result ^= table[n & 255];
+  for (let i = 0; i < 4; ++i){
+    result ^= table[((n & 255) + i) % 256];
     n >>= 8;
   }
   return result;
 }
+
+(window as any).h = hashInteger;
