@@ -1,6 +1,7 @@
 import * as Field from "./Field";
 import findNeighbours, { Neighbours } from "./findNeighbours";
 import Coords from "./Coords";
+import WorldCoords from './WorldCoords';
 import MinBinaryHeap from "./MinBinaryHeap";
 import invariant from "./invariant";
 import createArray from "./createArray";
@@ -13,8 +14,8 @@ const { getTileIndex } = Field;
 
 const neighbours = createArray(4, () => new Coords());
 const pending = new MinBinaryHeap(512, () => new Coords());
-const projNeighbour = new Coords();
-const projTo = new Coords();
+const projNeighbour = new WorldCoords();
+const projTo = new WorldCoords();
 const current = new Coords();
 const dataByTiles = new Map(
   1024,

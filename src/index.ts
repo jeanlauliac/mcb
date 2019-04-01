@@ -11,6 +11,7 @@ import Map from "./Map";
 import { LocalMouseEvent } from './MouseEvents';
 import RoadBuilder, {ROAD_TYPE_REVERSE_TABLE} from './RoadBuilder';
 import ScreenCoords from './ScreenCoords';
+import WorldCoords from './WorldCoords';
 
 const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
@@ -118,7 +119,7 @@ const deleteInfo: {
   isDeleting: false,
   fromCoords: new Coords(),
   toCoords: new Coords(),
-  square: {projFrom: new Coords(), projTo: new Coords()},
+  square: {projFrom: new WorldCoords(), projTo: new WorldCoords()},
 };
 
 function handleDelete(ev: LocalMouseEvent) {
@@ -156,12 +157,12 @@ function handleDelete(ev: LocalMouseEvent) {
   }
 }
 
-const projFrom = new Coords();
-const projTo = new Coords();
+const projFrom = new WorldCoords();
+const projTo = new WorldCoords();
 const unproj = new Coords();
 const iter = new Coords();
 
-type Square = {projFrom: Coords, projTo: Coords};
+type Square = {projFrom: WorldCoords, projTo: WorldCoords};
 
 function projectSquare(res: Square, from: Coords, to: Coords): void {
   res.projFrom.projectFrom(from);
@@ -186,6 +187,7 @@ const canvasCoords: CanvasCoords = { x: 0, y: 0 };
 
 const farmBaseTiles = createArray(9, () => new Coords());
 const drawCoords = new Coords();
+const piter = new WorldCoords();
 
 function draw() {
   ctx.strokeStyle = "#a0a0a0";
@@ -213,9 +215,9 @@ function draw() {
   if (cursorMode === "delete" && deleteInfo.isDeleting) {
     ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
     const sq = deleteInfo.square;
-    for (iter.row = sq.projFrom.row; iter.row <= sq.projTo.row; ++iter.row) {
-      for (iter.col = sq.projFrom.col; iter.col <= sq.projTo.col; ++iter.col) {
-        unproj.unprojectFrom(iter);
+    for (piter.row = sq.projFrom.row; piter.row <= sq.projTo.row; ++piter.row) {
+      for (piter.col = sq.projFrom.col; piter.col <= sq.projTo.col; ++piter.col) {
+        unproj.unprojectFrom(piter);
         if (!Field.areCoordsValid(unproj, 1)) {
           continue;
         }
