@@ -28,6 +28,11 @@ export type Path = {
   size: number;
 };
 
+/*
+
+Implement the A* algo.
+
+*/
 export default function findShortestPath(
   result: Dequeue<Coords>,
   from: Coords,
@@ -87,15 +92,40 @@ export default function findShortestPath(
       }
       const { row, col } = neighbour;
 
-      const score = tile.score + [1.1, 1, 1, 1.2][turn];
+      // We prefer turning left (cost of 4) than going straight (5), and we
+      // prefer going straight than turning right (6). By having this
+      // priorities, we avoid having many different possible shortest paths with
+      // the same cost. This makes the tool for drawing roads nicely
+      // predictable, an important feature for a city builder. The effect of
+      // this specific ordering is:
+      //
+      //   * we'll favor the straightest path if we can reach the end by turning
+      //     one or more times to the left. If there is no obstacle, we'll turn
+      //     just once. If there are obstacles, we'll go around in a rectangle
+      //     shape. Going in zig-zag would have a higher cost, because right
+      //     turns have a cost higher than going straight.
+      //
+      //   * if we can only reach the end by turning right, we'll follow the
+      //     limit of the obstacle closely. This is because doing many zigzags
+      //     left-right allows us to achieve the smallest score by
+      //     counterbalancing the high cost of right turns by the low cost of
+      //     left turns. Going in straight lines would have a higher cost.
+      //
+      const score = tile.score + [5, 4, 4, 6][turn];
 
       const neighbourData = dataByTiles.get(neighbourIx);
       if (neighbourData != null && score >= neighbourData.score) continue;
       if (!pendingIds.has(neighbourIx)) {
         projNeighbour.projectFrom(neighbour);
+
+        // Heuristic needs to represent the smallest real possible cost. If it
+        // is any higher, the algo won't bother trying to find that smallest
+        // cost. For example if we use 5 as a multiplier, it'll just settle by
+        // zigzaging left-right, because 5 is the average of left-turn (4)
+        // and right-turn (6) costs.
         const distToEnd =
-          Math.abs(projTo.row - projNeighbour.row) +
-          Math.abs(projTo.col - projNeighbour.col);
+          (Math.abs(projTo.row - projNeighbour.row) +
+          Math.abs(projTo.col - projNeighbour.col)) * 4;
         const fscore = score + distToEnd;
         pending.push(fscore).assign(neighbour);
         pendingIds.add(neighbourIx);
