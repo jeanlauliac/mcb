@@ -31,6 +31,15 @@ export function setTileType(index: number, type: string): void {
   data[index].type = type;
 }
 
+export function areCoordsValid(coords: Coords, margin: number): boolean {
+  return (
+            coords.row >= 0 + margin &&
+          coords.row < height - margin &&
+          coords.col >= 0 + margin &&
+          coords.col < width - margin
+);
+}
+
 const iter = new Coords();
 function fillRow(row: number, fromCol: number, toCol: number, type: string) {
   iter.row = row;

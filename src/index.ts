@@ -113,12 +113,12 @@ const deleteInfo: {
   isDeleting: boolean;
   toCoords: Coords;
   fromCoords: Coords;
-  tiles: Dequeue<Coords>;
+  square: Square;
 } = {
   isDeleting: false,
   fromCoords: new Coords(),
   toCoords: new Coords(),
-  tiles: new Dequeue(1024, () => new Coords())
+  square: {projFrom: new Coords(), projTo: new Coords()},
 };
 
 function handleDelete(ev: LocalMouseEvent) {
@@ -140,19 +140,19 @@ function handleDelete(ev: LocalMouseEvent) {
   if (row !== deleteInfo.toCoords.row || col !== deleteInfo.toCoords.col) {
     deleteInfo.toCoords.row = row;
     deleteInfo.toCoords.col = col;
-    findSquare(deleteInfo.tiles, deleteInfo.fromCoords, deleteInfo.toCoords);
+    projectSquare(deleteInfo.square, deleteInfo.fromCoords, deleteInfo.toCoords);
   }
   if ((ev.buttons & 1) === 0) {
     deleteInfo.isDeleting = false;
-    while (!deleteInfo.tiles.isEmpty()) {
-      const coords = deleteInfo.tiles.first;
-      const ix = Field.getTileIndex(coords);
-      const tile = Field.getTile(ix);
-      if (ROAD_TYPE_REVERSE_TABLE[tile.type] != null) {
-        Field.setTileType(ix, "grass");
-      }
-      deleteInfo.tiles.shift();
-    }
+    // while (!deleteInfo.tiles.isEmpty()) {
+    //   const coords = deleteInfo.tiles.first;
+    //   const ix = Field.getTileIndex(coords);
+    //   const tile = Field.getTile(ix);
+    //   if (ROAD_TYPE_REVERSE_TABLE[tile.type] != null) {
+    //     Field.setTileType(ix, "grass");
+    //   }
+    //   deleteInfo.tiles.shift();
+    // }
   }
 }
 
@@ -161,37 +161,21 @@ const projTo = new Coords();
 const unproj = new Coords();
 const iter = new Coords();
 
-function findSquare(result: Dequeue<Coords>, from: Coords, to: Coords) {
-  result.clear();
-  projFrom.projectFrom(from);
-  projTo.projectFrom(to);
-  if (projFrom.row > projTo.row) {
-    const row = projTo.row;
-    projTo.row = projFrom.row;
-    projFrom.row = row;
-  }
-  if (projFrom.col > projTo.col) {
-    const col = projTo.col;
-    projTo.col = projFrom.col;
-    projFrom.col = col;
-  }
+type Square = {projFrom: Coords, projTo: Coords};
 
-  for (iter.row = projFrom.row; iter.row <= projTo.row; ++iter.row) {
-    for (iter.col = projFrom.col; iter.col <= projTo.col; ++iter.col) {
-      unproj.unprojectFrom(iter);
-      if (
-        unproj.row < 0 ||
-        unproj.row >= Field.height ||
-        unproj.col < 0 ||
-        unproj.col >= Field.width
-      ) {
-        continue;
-      }
-      result.push().assign(unproj);
-    }
+function projectSquare(res: Square, from: Coords, to: Coords): void {
+  res.projFrom.projectFrom(from);
+  res.projTo.projectFrom(to);
+  if (res.projFrom.row > res.projTo.row) {
+    const row = res.projTo.row;
+    res.projTo.row = res.projFrom.row;
+    res.projFrom.row = row;
   }
-
-  return result;
+  if (res.projFrom.col > res.projTo.col) {
+    const col = res.projTo.col;
+    res.projTo.col = res.projFrom.col;
+    res.projFrom.col = col;
+  }
 }
 
 const topLeftCoords = new Coords();
@@ -226,12 +210,19 @@ function draw() {
     }
   }
 
-  if (cursorMode === "delete") {
+  if (cursorMode === "delete" && deleteInfo.isDeleting) {
     ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
-    for (const tile of deleteInfo.tiles) {
-      getCanvasCoords(canvasCoords, tile);
-      buildTilePath(canvasCoords);
-      ctx.fill();
+    const sq = deleteInfo.square;
+    for (iter.row = sq.projFrom.row; iter.row <= sq.projTo.row; ++iter.row) {
+      for (iter.col = sq.projFrom.col; iter.col <= sq.projTo.col; ++iter.col) {
+        unproj.unprojectFrom(iter);
+        if (!Field.areCoordsValid(unproj, 1)) {
+          continue;
+        }
+        getCanvasCoords(canvasCoords, unproj);
+        buildTilePath(canvasCoords);
+        ctx.fill();
+      }
     }
   }
 
