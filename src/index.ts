@@ -128,19 +128,15 @@ function handleDelete(ev: LocalMouseEvent) {
   if (!deleteInfo.isDeleting) {
     if ((ev.buttons & 1) !== 0) {
       deleteInfo.isDeleting = true;
-      deleteInfo.fromCoords.row = row;
-      deleteInfo.fromCoords.col = col;
-      deleteInfo.toCoords.row = -1;
-      deleteInfo.toCoords.col = -1;
+      deleteInfo.fromCoords.assign(pickedTile);
+      deleteInfo.toCoords.set(-1, -1);
     } else {
-      deleteInfo.toCoords.row = row;
-      deleteInfo.toCoords.col = col;
+      deleteInfo.toCoords.assign(pickedTile);
       return;
     }
   }
-  if (row !== deleteInfo.toCoords.row || col !== deleteInfo.toCoords.col) {
-    deleteInfo.toCoords.row = row;
-    deleteInfo.toCoords.col = col;
+  if (!deleteInfo.toCoords.equals(pickedTile)) {
+    deleteInfo.toCoords.assign(pickedTile);
     projectSquare(deleteInfo.square, deleteInfo.fromCoords, deleteInfo.toCoords);
   }
   if ((ev.buttons & 1) === 0) {
