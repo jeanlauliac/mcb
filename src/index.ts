@@ -251,19 +251,25 @@ function draw() {
     }
   }
 
-  if (cursorMode === "delete" && deleteInfo.isDeleting) {
+  if (cursorMode === "delete") {
     ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
-    const sq = deleteInfo.square;
-    for (piter.row = sq.projFrom.row; piter.row <= sq.projTo.row; ++piter.row) {
-      for (piter.col = sq.projFrom.col; piter.col <= sq.projTo.col; ++piter.col) {
-        unproj.unprojectFrom(piter);
-        if (!Field.areCoordsValid(unproj, 1)) {
-          continue;
+    if (deleteInfo.isDeleting) {
+      const sq = deleteInfo.square;
+      for (piter.row = sq.projFrom.row; piter.row <= sq.projTo.row; ++piter.row) {
+        for (piter.col = sq.projFrom.col; piter.col <= sq.projTo.col; ++piter.col) {
+          unproj.unprojectFrom(piter);
+          if (!Field.areCoordsValid(unproj, 1)) {
+            continue;
+          }
+          getCanvasCoords(canvasCoords, unproj);
+          buildTilePath(canvasCoords);
+          ctx.fill();
         }
-        getCanvasCoords(canvasCoords, unproj);
-        buildTilePath(canvasCoords);
-        ctx.fill();
       }
+    } else {
+      getCanvasCoords(canvasCoords, deleteInfo.toCoords);
+      buildTilePath(canvasCoords);
+      ctx.fill();
     }
   }
 
