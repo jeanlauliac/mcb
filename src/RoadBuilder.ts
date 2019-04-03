@@ -88,7 +88,7 @@ export default class RoadBuilder {
   }
 }
 
-const ROAD_TYPE_TABLE: { [key: number]: string } = {
+export const ROAD_TYPE_TABLE: { [key: number]: string } = {
   0b0011: "road_turn_left",
   0b1100: "road_turn_right",
   0b1001: "road_turn_top",
