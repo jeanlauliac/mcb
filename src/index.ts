@@ -52,6 +52,8 @@ function step(timestamp: number) {
 let camera = new ScreenCoords();
 camera.set(70, 50);
 
+let cameraSpeed = new ScreenCoords();
+
 let cursorMode = "move";
 let lastMouseEv = new LocalMouseEvent();
 let hasMouseEv = false;
@@ -101,6 +103,10 @@ function update() {
     }
   }
   keyPressCount = 0;
+  if (!camMove.moving) {
+    camera.sum(cameraSpeed);
+    cameraSpeed.scale(0.9);
+  }
 }
 
 const pickedTile = new Coords();
@@ -398,7 +404,7 @@ function buildTilePath(coords: CanvasCoords): void {
   ctx.closePath();
 }
 
-const camMove = { x: 0, y: 0, camX: 0, camY: 0, moving: false };
+const camMove = { x: 0, y: 0, camX: 0, camY: 0, moving: false, prev: new ScreenCoords() };
 
 function handleMouseEvent(type: MouseEventType, ev: MouseEvent) {
   if (mouseEvents.isFull()) {
@@ -427,16 +433,17 @@ canvas.addEventListener(
 
 function handleCameraMove(ev: LocalMouseEvent) {
   if (!camMove.moving) {
-    if ((ev.buttons & 1) !== 0) {
+    if (ev.isPrimaryDown()) {
       camMove.x = ev.clientX;
       camMove.y = ev.clientY;
       camMove.camX = camera.x;
       camMove.camY = camera.y;
+      camMove.prev.assign(camera);
       camMove.moving = true;
     }
     return;
   }
-  if ((ev.buttons & 1) === 0) {
+  if (ev.isPrimaryUp()) {
     camMove.moving = false;
     return;
   }
@@ -450,6 +457,10 @@ function handleCameraMove(ev: LocalMouseEvent) {
   if (camera.y < 0) camera.y = 0;
   const camMaxY = (Field.height - 1) * TILE_HALF_HEIGHT - height;
   if (camera.y > camMaxY) camera.y = camMaxY;
+
+  cameraSpeed.x = camera.x - camMove.prev.x;
+  cameraSpeed.y = camera.y - camMove.prev.y;
+  camMove.prev.assign(camera);
 }
 
 const keysPresses = createArray<string>(8, () => "");
