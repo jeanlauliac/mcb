@@ -30,51 +30,55 @@ export default class RoadBuilder {
   handleMouseEvent(ev: LocalMouseEvent, camera: ScreenCoords): void {
     pickTile(pickedTile, ev.clientX + camera.x, ev.clientY + camera.y);
     if (!this._isBuilding) {
-      if ((ev.buttons & 1) !== 0) {
-        this._isBuilding = true;
-        this._originCoords.assign(pickedTile);
-        this._currentCoords.row = -1;
-        this._currentCoords.col = -1;
-        this._tiles.clear();
-        this._tileMap.clear();
-      } else {
-        this._currentCoords.assign(pickedTile);
-        return;
-      }
+      this._handleMouseEventInStandby(ev, pickedTile);
+      return;
     }
     if (!this._currentCoords.equals(pickedTile)) {
-      this._currentCoords.assign(pickedTile);
-      findShortestPath(path, this._originCoords, this._currentCoords);
-
-      this._tiles.clear();
-      this._tileMap.clear();
-
-      let prevIndex = -1;
-      while (!path.isEmpty()) {
-        const coords = path.first;
-        const roadTile = this._tiles.push();
-        roadTile.coords.assign(coords);
-        path.shift();
-
-        const index = Field.getTileIndex(coords);
-        findNeighbours(neighbours, coords);
-        for (let i = 0; i < 4; ++i) {
-          const ni = Field.getTileIndex(neighbours[i]);
-          const nextIndex = path.isEmpty() ? -1 : Field.getTileIndex(path.first);
-          neighbourSt[i] = ni === prevIndex || ni === nextIndex;
-        }
-
-        const tile = Field.getTile(index);
-        roadTile.type = identifyRoadType(neighbourSt, tile.type);
-        this._tileMap.set(index).type = roadTile.type;
-        prevIndex = index;
-      }
+      this._updateCurrentCoords(pickedTile);
     }
+    if ((ev.buttons & 1) !== 0) return;
+    this._isBuilding = false;
+    for (const tile of this._tiles) {
+      Field.setTileType(Field.getTileIndex(tile.coords), tile.type);
+    }
+  }
+
+  _handleMouseEventInStandby(ev: LocalMouseEvent, picked: Coords) {
     if ((ev.buttons & 1) === 0) {
-      this._isBuilding = false;
-      for (const tile of this._tiles) {
-        Field.setTileType(Field.getTileIndex(tile.coords), tile.type);
+      this._currentCoords.assign(picked);
+      return;
+    }
+    this._isBuilding = true;
+    this._originCoords.assign(picked);
+    this._updateCurrentCoords(picked);
+  }
+
+  _updateCurrentCoords(target: Coords) {
+    this._currentCoords.assign(target);
+    findShortestPath(path, this._originCoords, this._currentCoords);
+
+    this._tiles.clear();
+    this._tileMap.clear();
+
+    let prevIndex = -1;
+    while (!path.isEmpty()) {
+      const coords = path.first;
+      const roadTile = this._tiles.push();
+      roadTile.coords.assign(coords);
+      path.shift();
+
+      const index = Field.getTileIndex(coords);
+      findNeighbours(neighbours, coords);
+      for (let i = 0; i < 4; ++i) {
+        const ni = Field.getTileIndex(neighbours[i]);
+        const nextIndex = path.isEmpty() ? -1 : Field.getTileIndex(path.first);
+        neighbourSt[i] = ni === prevIndex || ni === nextIndex;
       }
+
+      const tile = Field.getTile(index);
+      roadTile.type = identifyRoadType(neighbourSt, tile.type);
+      this._tileMap.set(index).type = roadTile.type;
+      prevIndex = index;
     }
   }
 
