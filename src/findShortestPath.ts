@@ -1,7 +1,7 @@
 import * as Field from "./Field";
 import findNeighbours, { Neighbours } from "./findNeighbours";
 import Coords from "./Coords";
-import WorldCoords from './WorldCoords';
+import WorldCoords from "./WorldCoords";
 import MinBinaryHeap from "./MinBinaryHeap";
 import invariant from "./invariant";
 import createArray from "./createArray";
@@ -126,7 +126,8 @@ export default function findShortestPath(
         // and right-turn (6) costs.
         const distToEnd =
           (Math.abs(projTo.row - projNeighbour.row) +
-          Math.abs(projTo.col - projNeighbour.col)) * 4;
+            Math.abs(projTo.col - projNeighbour.col)) *
+          4;
         const fscore = score + distToEnd;
         pending.push(fscore).assign(neighbour);
         pendingIds.add(neighbourIx);

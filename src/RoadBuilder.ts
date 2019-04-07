@@ -1,14 +1,14 @@
-import Coords from './Coords';
-import Dequeue from './Dequeue';
-import Map from './Map';
-import hashInteger from './hashInteger';
-import createArray from './createArray';
-import { LocalMouseEvent } from './MouseEvents';
-import pickTile from './pickTile';
-import ScreenCoords from './ScreenCoords';
-import findNeighbours from './findNeighbours';
-import findShortestPath from './findShortestPath';
-import * as Field from './Field';
+import Coords from "./Coords";
+import Dequeue from "./Dequeue";
+import Map from "./Map";
+import hashInteger from "./hashInteger";
+import createArray from "./createArray";
+import { LocalMouseEvent } from "./MouseEvents";
+import pickTile from "./pickTile";
+import ScreenCoords from "./ScreenCoords";
+import findNeighbours from "./findNeighbours";
+import findShortestPath from "./findShortestPath";
+import * as Field from "./Field";
 
 const pickedTile = new Coords();
 const path = new Dequeue(512, () => new Coords());
@@ -19,8 +19,15 @@ export default class RoadBuilder {
   _isBuilding = false;
   _currentCoords = new Coords();
   _originCoords = new Coords();
-  _tiles: Dequeue<{ coords: Coords; type: string }> = new Dequeue(512, () => ({ coords: new Coords(), type: "" }));
-  _tileMap: Map<number, { type: string }> = new Map(512, () => ({ type: "" }), hashInteger);
+  _tiles: Dequeue<{ coords: Coords; type: string }> = new Dequeue(512, () => ({
+    coords: new Coords(),
+    type: ""
+  }));
+  _tileMap: Map<number, { type: string }> = new Map(
+    512,
+    () => ({ type: "" }),
+    hashInteger
+  );
 
   enable(ev: LocalMouseEvent, camera: ScreenCoords) {
     this._isBuilding = false;
@@ -30,21 +37,20 @@ export default class RoadBuilder {
   handleMouseEvent(ev: LocalMouseEvent, camera: ScreenCoords): void {
     pickTile(pickedTile, ev.clientX + camera.x, ev.clientY + camera.y);
     if (!this._isBuilding) {
-      this._handleMouseEventInStandby(ev, pickedTile);
-      return;
+      return this._handleMouseEventInStandby(ev, pickedTile);
     }
     if (!this._currentCoords.equals(pickedTile)) {
       this._updateCurrentCoords(pickedTile);
     }
-    if ((ev.buttons & 1) !== 0) return;
+    if (!ev.isPrimaryUp()) return;
     this._isBuilding = false;
     for (const tile of this._tiles) {
       Field.setTileType(Field.getTileIndex(tile.coords), tile.type);
     }
   }
 
-  _handleMouseEventInStandby(ev: LocalMouseEvent, picked: Coords) {
-    if ((ev.buttons & 1) === 0) {
+  _handleMouseEventInStandby(ev: LocalMouseEvent, picked: Coords): void {
+    if (!ev.isPrimaryDown()) {
       this._currentCoords.assign(picked);
       return;
     }

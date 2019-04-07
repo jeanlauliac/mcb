@@ -6,5 +6,4 @@ export default class ScreenCoords {
     this.x = x;
     this.y = y;
   }
-
 }

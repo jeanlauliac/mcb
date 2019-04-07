@@ -1,4 +1,4 @@
-import Coords from './Coords';
+import Coords from "./Coords";
 
 export default class WorldCoords {
   row = 0;

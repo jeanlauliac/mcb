@@ -8,10 +8,13 @@ import createArray from "./createArray";
 import Dequeue from "./Dequeue";
 import hashInteger from "./hashInteger";
 import Map from "./Map";
-import { LocalMouseEvent } from './MouseEvents';
-import RoadBuilder, {ROAD_TYPE_REVERSE_TABLE, ROAD_TYPE_TABLE} from './RoadBuilder';
-import ScreenCoords from './ScreenCoords';
-import WorldCoords from './WorldCoords';
+import { LocalMouseEvent, MouseEventType } from "./MouseEvents";
+import RoadBuilder, {
+  ROAD_TYPE_REVERSE_TABLE,
+  ROAD_TYPE_TABLE
+} from "./RoadBuilder";
+import ScreenCoords from "./ScreenCoords";
+import WorldCoords from "./WorldCoords";
 
 const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
@@ -50,14 +53,13 @@ let camera = new ScreenCoords();
 camera.set(70, 50);
 
 let cursorMode = "move";
-let lastMouseEv = { clientX: 0, clientY: 0, buttons: 0 };
+let lastMouseEv = new LocalMouseEvent();
 let hasMouseEv = false;
 
-const mouseEvents = new Dequeue(8, () => ({
-  clientX: 0,
-  clientY: 0,
-  buttons: 0
-}));
+const mouseEvents = new Dequeue<LocalMouseEvent>(
+  8,
+  () => new LocalMouseEvent()
+);
 
 const roadBuilder = new RoadBuilder();
 
@@ -119,14 +121,14 @@ const deleteInfo: {
   isDeleting: false,
   fromCoords: new Coords(),
   toCoords: new Coords(),
-  square: {projFrom: new WorldCoords(), projTo: new WorldCoords()},
+  square: { projFrom: new WorldCoords(), projTo: new WorldCoords() }
 };
 
 function handleDelete(ev: LocalMouseEvent) {
   pickTile(pickedTile, ev.clientX + camera.x, ev.clientY + camera.y);
   const { row, col } = pickedTile;
   if (!deleteInfo.isDeleting) {
-    if ((ev.buttons & 1) !== 0) {
+    if (ev.isPrimaryDown()) {
       deleteInfo.isDeleting = true;
       deleteInfo.fromCoords.assign(pickedTile);
       deleteInfo.toCoords.set(-1, -1);
@@ -137,13 +139,21 @@ function handleDelete(ev: LocalMouseEvent) {
   }
   if (!deleteInfo.toCoords.equals(pickedTile)) {
     deleteInfo.toCoords.assign(pickedTile);
-    projectSquare(deleteInfo.square, deleteInfo.fromCoords, deleteInfo.toCoords);
+    projectSquare(
+      deleteInfo.square,
+      deleteInfo.fromCoords,
+      deleteInfo.toCoords
+    );
   }
-  if ((ev.buttons & 1) === 0) {
+  if (ev.isPrimaryUp()) {
     deleteInfo.isDeleting = false;
     const sq = deleteInfo.square;
     for (piter.row = sq.projFrom.row; piter.row <= sq.projTo.row; ++piter.row) {
-      for (piter.col = sq.projFrom.col; piter.col <= sq.projTo.col; ++piter.col) {
+      for (
+        piter.col = sq.projFrom.col;
+        piter.col <= sq.projTo.col;
+        ++piter.col
+      ) {
         unproj.unprojectFrom(piter);
         if (!Field.areCoordsValid(unproj, 1)) {
           continue;
@@ -197,7 +207,7 @@ const projTo = new WorldCoords();
 const unproj = new Coords();
 const iter = new Coords();
 
-type Square = {projFrom: WorldCoords, projTo: WorldCoords};
+type Square = { projFrom: WorldCoords; projTo: WorldCoords };
 
 function projectSquare(res: Square, from: Coords, to: Coords): void {
   res.projFrom.projectFrom(from);
@@ -251,8 +261,16 @@ function draw() {
     ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
     if (deleteInfo.isDeleting) {
       const sq = deleteInfo.square;
-      for (piter.row = sq.projFrom.row; piter.row <= sq.projTo.row; ++piter.row) {
-        for (piter.col = sq.projFrom.col; piter.col <= sq.projTo.col; ++piter.col) {
+      for (
+        piter.row = sq.projFrom.row;
+        piter.row <= sq.projTo.row;
+        ++piter.row
+      ) {
+        for (
+          piter.col = sq.projFrom.col;
+          piter.col <= sq.projTo.col;
+          ++piter.col
+        ) {
           unproj.unprojectFrom(piter);
           if (!Field.areCoordsValid(unproj, 1)) {
             continue;
@@ -345,7 +363,7 @@ function drawTile(target: Coords) {
   const tile = Field.getTile(tileIx);
   let type = tile.type;
 
-  const {tileMap} = roadBuilder;
+  const { tileMap } = roadBuilder;
   if (cursorMode === "road" && tileMap != null) {
     const roadTile = tileMap.get(tileIx);
     if (roadTile != null) type = roadTile.type;
@@ -382,7 +400,7 @@ function buildTilePath(coords: CanvasCoords): void {
 
 const camMove = { x: 0, y: 0, camX: 0, camY: 0, moving: false };
 
-function handleMouseEvent(ev: MouseEvent) {
+function handleMouseEvent(type: MouseEventType, ev: MouseEvent) {
   if (mouseEvents.isFull()) {
     mouseEvents.shift();
   }
@@ -390,11 +408,22 @@ function handleMouseEvent(ev: MouseEvent) {
   lastEv.clientX = ev.clientX;
   lastEv.clientY = ev.clientY;
   lastEv.buttons = ev.buttons;
+  lastEv.button = ev.button;
+  lastEv.type = type;
 }
 
-canvas.addEventListener("mousemove", handleMouseEvent);
-canvas.addEventListener("mousedown", handleMouseEvent);
-canvas.addEventListener("mouseup", handleMouseEvent);
+canvas.addEventListener(
+  "mousemove",
+  handleMouseEvent.bind(null, MouseEventType.Move)
+);
+canvas.addEventListener(
+  "mousedown",
+  handleMouseEvent.bind(null, MouseEventType.Down)
+);
+canvas.addEventListener(
+  "mouseup",
+  handleMouseEvent.bind(null, MouseEventType.Up)
+);
 
 function handleCameraMove(ev: LocalMouseEvent) {
   if (!camMove.moving) {

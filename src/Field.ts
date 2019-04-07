@@ -33,11 +33,11 @@ export function setTileType(index: number, type: string): void {
 
 export function areCoordsValid(coords: Coords, margin: number): boolean {
   return (
-            coords.row >= 0 + margin &&
-          coords.row < height - margin &&
-          coords.col >= 0 + margin &&
-          coords.col < width - margin
-);
+    coords.row >= 0 + margin &&
+    coords.row < height - margin &&
+    coords.col >= 0 + margin &&
+    coords.col < width - margin
+  );
 }
 
 const iter = new Coords();
@@ -64,7 +64,6 @@ fillRow(20, 10, 15, "water");
 fillRow(21, 10, 13, "water");
 fillRow(22, 12, 12, "water");
 
-
 fillRow(21, 21, 22, "water");
 fillRow(22, 21, 23, "water");
 fillRow(23, 20, 23, "water");
@@ -74,8 +73,6 @@ fillRow(26, 19, 25, "water");
 fillRow(27, 19, 25, "water");
 fillRow(28, 19, 25, "water");
 fillRow(29, 19, 25, "water");
-
-
 
 fillRow(26, 4, 7, "water");
 fillRow(27, 4, 7, "water");
