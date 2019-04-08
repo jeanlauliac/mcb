@@ -117,6 +117,7 @@ function update(coef: number) {
     camDelta.assign(cameraSpeed);
     camDelta.scale(coef);
     camera.sum(cameraSpeed);
+    restrictCamera();
     cameraSpeed.scale(0.9);
   }
 }
@@ -461,19 +462,23 @@ function handleCameraMove(ev: LocalMouseEvent) {
   }
 
   camera.x = camMove.camX + camMove.x - ev.clientX;
-  if (camera.x < 0) camera.x = 0;
-  const camMaxX = (Field.width - 1) * TILE_HALF_WIDTH * 2 - width;
-  if (camera.x > camMaxX) camera.x = camMaxX;
-
   camera.y = camMove.camY + camMove.y - ev.clientY;
-  if (camera.y < 0) camera.y = 0;
-  const camMaxY = (Field.height - 1) * TILE_HALF_HEIGHT - height;
-  if (camera.y > camMaxY) camera.y = camMaxY;
+  restrictCamera();
 
   cameraSpeed.x = camera.x - camMove.prev.x;
   cameraSpeed.y = camera.y - camMove.prev.y;
   cameraSpeed.scale(2);
   camMove.prev.assign(camera);
+}
+
+function restrictCamera() {
+  if (camera.x < 0) camera.x = 0;
+  const camMaxX = (Field.width - 1) * TILE_HALF_WIDTH * 2 - width;
+  if (camera.x > camMaxX) camera.x = camMaxX;
+
+  if (camera.y < 0) camera.y = 0;
+  const camMaxY = (Field.height - 1) * TILE_HALF_HEIGHT - height;
+  if (camera.y > camMaxY) camera.y = camMaxY;
 }
 
 const keysPresses = createArray<string>(8, () => "");
