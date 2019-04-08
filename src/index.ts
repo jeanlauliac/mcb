@@ -39,13 +39,22 @@ function requestStep() {
   window.requestAnimationFrame(step);
 }
 
+let flip = false;
+
 function step(timestamp: number) {
-  setTimeout(requestStep, tickLength);
+  requestStep();
+  flip = !flip;
+  if (flip) return;
+
   if (!lastTimestamp) lastTimestamp = timestamp;
-  while (lastTimestamp < timestamp - tickLength) {
-    update();
-    lastTimestamp += tickLength;
+  let elapsedMs = timestamp - lastTimestamp;
+  if (elapsedMs > tickLength * 2) {
+    elapsedMs = tickLength * 2;
   }
+
+  update(elapsedMs / 30);
+  lastTimestamp = timestamp;
+
   draw();
 }
 
@@ -64,8 +73,9 @@ const mouseEvents = new Dequeue<LocalMouseEvent>(
 );
 
 const roadBuilder = new RoadBuilder();
+const camDelta = new ScreenCoords();
 
-function update() {
+function update(coef: number) {
   for (; !mouseEvents.isEmpty(); mouseEvents.shift()) {
     const ev = mouseEvents.first;
     switch (cursorMode) {
@@ -104,6 +114,8 @@ function update() {
   }
   keyPressCount = 0;
   if (!camMove.moving) {
+    camDelta.assign(cameraSpeed);
+    camDelta.scale(coef);
     camera.sum(cameraSpeed);
     cameraSpeed.scale(0.9);
   }
@@ -460,6 +472,7 @@ function handleCameraMove(ev: LocalMouseEvent) {
 
   cameraSpeed.x = camera.x - camMove.prev.x;
   cameraSpeed.y = camera.y - camMove.prev.y;
+  cameraSpeed.scale(2);
   camMove.prev.assign(camera);
 }
 
