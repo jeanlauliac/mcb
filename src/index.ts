@@ -118,7 +118,7 @@ function update(coef: number) {
     camDelta.scale(coef);
     camera.sum(cameraSpeed);
     restrictCamera();
-    cameraSpeed.scale(0.9);
+    cameraSpeed.scale(Math.exp(-coef / 20));
   }
 }
 
@@ -465,9 +465,10 @@ function handleCameraMove(ev: LocalMouseEvent) {
   camera.y = camMove.camY + camMove.y - ev.clientY;
   restrictCamera();
 
-  cameraSpeed.x = camera.x - camMove.prev.x;
-  cameraSpeed.y = camera.y - camMove.prev.y;
-  cameraSpeed.scale(2);
+  const newSpeedX = (camera.x - camMove.prev.x) * 2;
+  const newSpeedY = (camera.y - camMove.prev.y) * 2;
+  cameraSpeed.x = cameraSpeed.x * 0.2 + newSpeedX * 0.8;
+  cameraSpeed.y = cameraSpeed.y * 0.2 + newSpeedY * 0.8;
   camMove.prev.assign(camera);
 }
 

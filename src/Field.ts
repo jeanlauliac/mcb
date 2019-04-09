@@ -2,8 +2,8 @@ import Coords from "./Coords";
 
 type Tile = { type: string };
 
-export const width = 40;
-export const height = 60;
+export const width = 60;
+export const height = 200;
 
 const data = (() => {
   let result = Array(height * width);
