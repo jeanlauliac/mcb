@@ -65,8 +65,7 @@ camera.set(70, 50);
 let cameraSpeed = new ScreenCoords();
 
 let cursorMode = "move";
-let lastMouseEv = new LocalMouseEvent();
-let hasMouseEv = false;
+let mouseCoords = new ScreenCoords();
 
 const mouseEvents = new Dequeue<LocalMouseEvent>(
   8,
@@ -88,27 +87,27 @@ function update(coef: number) {
         roadBuilder.handleMouseEvent(ev, camera);
         break;
       case "farm":
-        handleFarmMove(ev);
+        handleFarmMove(ev.coords);
         break;
       case "delete":
         bulldozer.handleMouseEvent(ev, camera);
         break;
     }
-    Object.assign(lastMouseEv, ev);
+    mouseCoords.assign(ev.coords);
   }
   for (let i = 0; i < keyPressCount; ++i) {
     switch (keysPresses[i]) {
       case "r":
         cursorMode = "road";
-        roadBuilder.enable(lastMouseEv, camera);
+        roadBuilder.enable(mouseCoords, camera);
         break;
       case "d":
         cursorMode = "delete";
-        bulldozer.enable(lastMouseEv, camera);
+        bulldozer.enable(mouseCoords, camera);
         break;
       case "f":
         cursorMode = "farm";
-        handleFarmMove(lastMouseEv);
+        handleFarmMove(mouseCoords);
         break;
       case "Escape":
         cursorMode = "move";
@@ -129,8 +128,8 @@ const pickedTile = new Coords();
 
 const farmCoords = new Coords();
 
-function handleFarmMove(ev: LocalMouseEvent) {
-  pickTile(pickedTile, ev.clientX + camera.x, ev.clientY + camera.y);
+function handleFarmMove(coords: ScreenCoords) {
+  pickTile(pickedTile, coords.x + camera.x, coords.y + camera.y);
   farmCoords.assign(pickedTile);
 }
 
@@ -320,8 +319,7 @@ function handleMouseEvent(type: MouseEventType, ev: MouseEvent) {
     mouseEvents.shift();
   }
   const lastEv = mouseEvents.push();
-  lastEv.clientX = ev.clientX;
-  lastEv.clientY = ev.clientY;
+  lastEv.coords.set(ev.clientX, ev.clientY);
   lastEv.buttons = ev.buttons;
   lastEv.button = ev.button;
   lastEv.type = type;
@@ -343,8 +341,8 @@ canvas.addEventListener(
 function handleCameraMove(ev: LocalMouseEvent) {
   if (!camMove.moving) {
     if (ev.isPrimaryDown()) {
-      camMove.x = ev.clientX;
-      camMove.y = ev.clientY;
+      camMove.x = ev.coords.x;
+      camMove.y = ev.coords.y;
       camMove.camX = camera.x;
       camMove.camY = camera.y;
       camMove.prev.assign(camera);
@@ -357,8 +355,8 @@ function handleCameraMove(ev: LocalMouseEvent) {
     return;
   }
 
-  camera.x = camMove.camX + camMove.x - ev.clientX;
-  camera.y = camMove.camY + camMove.y - ev.clientY;
+  camera.x = camMove.camX + camMove.x - ev.coords.x;
+  camera.y = camMove.camY + camMove.y - ev.coords.y;
   restrictCamera();
 
   const newSpeedX = (camera.x - camMove.prev.x) * 2;

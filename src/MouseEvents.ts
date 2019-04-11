@@ -1,3 +1,5 @@
+import ScreenCoords from "./ScreenCoords";
+
 export enum MouseEventType {
   Move,
   Down,
@@ -9,8 +11,7 @@ export enum MouseEventButton {
 }
 
 export class LocalMouseEvent {
-  clientX: number;
-  clientY: number;
+  coords = new ScreenCoords();
   buttons: number;
   button: MouseEventButton;
   type: MouseEventType;

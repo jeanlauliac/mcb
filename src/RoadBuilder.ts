@@ -29,18 +29,18 @@ export default class RoadBuilder {
     hashInteger
   );
 
-  enable(ev: LocalMouseEvent, camera: ScreenCoords) {
+  enable(mouseCoords: ScreenCoords, camera: ScreenCoords) {
     this._isBuilding = false;
-    this.handleMouseEvent(ev, camera);
+    this._handleMouseMove(mouseCoords, camera);
   }
 
   handleMouseEvent(ev: LocalMouseEvent, camera: ScreenCoords): void {
-    pickTile(pickedTile, ev.clientX + camera.x, ev.clientY + camera.y);
-    if (!this._isBuilding) {
-      return this._handleMouseEventInStandby(ev, pickedTile);
-    }
-    if (!this._currentCoords.equals(pickedTile)) {
-      this._updateCurrentCoords(pickedTile);
+    this._handleMouseMove(ev.coords, camera);
+    if (!this._isBuilding && ev.isPrimaryDown()) {
+      this._isBuilding = true;
+      this._originCoords.assign(this._currentCoords);
+      this._updateCurrentCoords(this._currentCoords);
+      return;
     }
     if (!ev.isPrimaryUp()) return;
     this._isBuilding = false;
@@ -49,14 +49,15 @@ export default class RoadBuilder {
     }
   }
 
-  _handleMouseEventInStandby(ev: LocalMouseEvent, picked: Coords): void {
-    if (!ev.isPrimaryDown()) {
-      this._currentCoords.assign(picked);
+  _handleMouseMove(coords: ScreenCoords, camera: ScreenCoords) {
+    pickTile(pickedTile, coords.x + camera.x, coords.y + camera.y);
+    if (!this._isBuilding) {
+      this._currentCoords.assign(pickedTile);
       return;
     }
-    this._isBuilding = true;
-    this._originCoords.assign(picked);
-    this._updateCurrentCoords(picked);
+    if (!this._currentCoords.equals(pickedTile)) {
+      this._updateCurrentCoords(pickedTile);
+    }
   }
 
   _updateCurrentCoords(target: Coords) {

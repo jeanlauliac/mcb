@@ -16,19 +16,18 @@ export default class {
   _toCoords = new Coords();
   _square = { projFrom: new WorldCoords(), projTo: new WorldCoords() };
 
-  enable(ev: LocalMouseEvent, camera: ScreenCoords): void {
+  enable(coords: ScreenCoords, camera: ScreenCoords): void {
     this._isDeleting = false;
-    this.handleMouseEvent(ev, camera);
+    this._handleMouseMove(coords, camera);
   }
 
   handleMouseEvent(ev: LocalMouseEvent, camera: ScreenCoords): void {
-    pickTile(pickedTile, ev.clientX + camera.x, ev.clientY + camera.y);
-    const { row, col } = pickedTile;
-    if (!this._isDeleting) {
-      return this._handleMouseEventInStandby(ev, pickedTile);
-    }
-    if (!this._toCoords.equals(pickedTile)) {
-      this._updateCurrentCoords(pickedTile);
+    this._handleMouseMove(ev.coords, camera);
+    if (ev.isPrimaryDown()) {
+      this._isDeleting = true;
+      this._fromCoords.assign(this._toCoords);
+      this._updateCurrentCoords(this._toCoords);
+      return;
     }
     if (!ev.isPrimaryUp()) return;
 
@@ -73,14 +72,15 @@ export default class {
     }
   }
 
-  _handleMouseEventInStandby(ev: LocalMouseEvent, picked: Coords): void {
-    if (!ev.isPrimaryDown()) {
-      this._toCoords.assign(picked);
+  _handleMouseMove(coords: ScreenCoords, camera: ScreenCoords) {
+    pickTile(pickedTile, coords.x + camera.x, coords.y + camera.y);
+    if (!this._isDeleting) {
+      this._toCoords.assign(pickedTile);
       return;
     }
-    this._isDeleting = true;
-    this._fromCoords.assign(picked);
-    this._updateCurrentCoords(picked);
+    if (!this._toCoords.equals(pickedTile)) {
+      this._updateCurrentCoords(pickedTile);
+    }
   }
 
   _updateCurrentCoords(target: Coords) {
