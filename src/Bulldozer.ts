@@ -10,7 +10,7 @@ const pickedTile = new Coords();
 const unproj = new Coords();
 const piter = new WorldCoords();
 
-export default class {
+export default class Bulldozer {
   _isDeleting = false;
   _fromCoords = new Coords();
   _toCoords = new Coords();
