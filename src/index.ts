@@ -15,6 +15,7 @@ import RoadBuilder, {
 } from "./RoadBuilder";
 import ScreenCoords from "./ScreenCoords";
 import WorldCoords from "./WorldCoords";
+import Bulldozer from "./Bulldozer";
 
 const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
@@ -73,6 +74,7 @@ const mouseEvents = new Dequeue<LocalMouseEvent>(
 );
 
 const roadBuilder = new RoadBuilder();
+const bulldozer = new Bulldozer();
 const camDelta = new ScreenCoords();
 
 function update(coef: number) {
@@ -89,7 +91,7 @@ function update(coef: number) {
         handleFarmMove(ev);
         break;
       case "delete":
-        handleDelete(ev);
+        bulldozer.handleMouseEvent(ev, camera);
         break;
     }
     Object.assign(lastMouseEv, ev);
@@ -102,6 +104,7 @@ function update(coef: number) {
         break;
       case "d":
         cursorMode = "delete";
+        bulldozer.enable(lastMouseEv, camera);
         break;
       case "f":
         cursorMode = "farm";
@@ -131,117 +134,10 @@ function handleFarmMove(ev: LocalMouseEvent) {
   farmCoords.assign(pickedTile);
 }
 
-const deleteInfo: {
-  isDeleting: boolean;
-  toCoords: Coords;
-  fromCoords: Coords;
-  square: Square;
-} = {
-  isDeleting: false,
-  fromCoords: new Coords(),
-  toCoords: new Coords(),
-  square: { projFrom: new WorldCoords(), projTo: new WorldCoords() }
-};
-
-function handleDelete(ev: LocalMouseEvent) {
-  pickTile(pickedTile, ev.clientX + camera.x, ev.clientY + camera.y);
-  const { row, col } = pickedTile;
-  if (!deleteInfo.isDeleting) {
-    if (ev.isPrimaryDown()) {
-      deleteInfo.isDeleting = true;
-      deleteInfo.fromCoords.assign(pickedTile);
-      deleteInfo.toCoords.set(-1, -1);
-    } else {
-      deleteInfo.toCoords.assign(pickedTile);
-      return;
-    }
-  }
-  if (!deleteInfo.toCoords.equals(pickedTile)) {
-    deleteInfo.toCoords.assign(pickedTile);
-    projectSquare(
-      deleteInfo.square,
-      deleteInfo.fromCoords,
-      deleteInfo.toCoords
-    );
-  }
-  if (ev.isPrimaryUp()) {
-    deleteInfo.isDeleting = false;
-    const sq = deleteInfo.square;
-    for (piter.row = sq.projFrom.row; piter.row <= sq.projTo.row; ++piter.row) {
-      for (
-        piter.col = sq.projFrom.col;
-        piter.col <= sq.projTo.col;
-        ++piter.col
-      ) {
-        unproj.unprojectFrom(piter);
-        if (!Field.areCoordsValid(unproj, 1)) {
-          continue;
-        }
-        const ix = Field.getTileIndex(unproj);
-        const tile = Field.getTile(ix);
-        if (ROAD_TYPE_REVERSE_TABLE[tile.type] != null) {
-          Field.setTileType(ix, "grass");
-        }
-      }
-    }
-
-    piter.row = sq.projFrom.row - 1;
-    for (piter.col = sq.projFrom.col; piter.col <= sq.projTo.col; ++piter.col) {
-      cleanupDeletedRoadEdge(piter, 0b1011);
-    }
-
-    piter.row = sq.projTo.row + 1;
-    for (piter.col = sq.projFrom.col; piter.col <= sq.projTo.col; ++piter.col) {
-      cleanupDeletedRoadEdge(piter, 0b1110);
-    }
-
-    piter.col = sq.projFrom.col - 1;
-    for (piter.row = sq.projFrom.row; piter.row <= sq.projTo.row; ++piter.row) {
-      cleanupDeletedRoadEdge(piter, 0b0111);
-    }
-
-    piter.col = sq.projTo.col + 1;
-    for (piter.row = sq.projFrom.row; piter.row <= sq.projTo.row; ++piter.row) {
-      cleanupDeletedRoadEdge(piter, 0b1101);
-    }
-  }
-}
-
-function cleanupDeletedRoadEdge(coords: WorldCoords, maskFilter: number): void {
-  unproj.unprojectFrom(coords);
-  if (!Field.areCoordsValid(unproj, 1)) {
-    return;
-  }
-  const ix = Field.getTileIndex(unproj);
-  const tile = Field.getTile(ix);
-
-  let mask = ROAD_TYPE_REVERSE_TABLE[tile.type];
-  if (mask == null) return;
-  mask &= maskFilter;
-  Field.setTileType(ix, ROAD_TYPE_TABLE[mask] || "grass");
-}
-
 const projFrom = new WorldCoords();
 const projTo = new WorldCoords();
 const unproj = new Coords();
 const iter = new Coords();
-
-type Square = { projFrom: WorldCoords; projTo: WorldCoords };
-
-function projectSquare(res: Square, from: Coords, to: Coords): void {
-  res.projFrom.projectFrom(from);
-  res.projTo.projectFrom(to);
-  if (res.projFrom.row > res.projTo.row) {
-    const row = res.projTo.row;
-    res.projTo.row = res.projFrom.row;
-    res.projFrom.row = row;
-  }
-  if (res.projFrom.col > res.projTo.col) {
-    const col = res.projTo.col;
-    res.projTo.col = res.projFrom.col;
-    res.projFrom.col = col;
-  }
-}
 
 const topLeftCoords = new Coords();
 const bottomRightCoords = new Coords();
@@ -278,8 +174,8 @@ function draw() {
 
   if (cursorMode === "delete") {
     ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
-    if (deleteInfo.isDeleting) {
-      const sq = deleteInfo.square;
+    const sq = bulldozer.square;
+    if (sq != null) {
       for (
         piter.row = sq.projFrom.row;
         piter.row <= sq.projTo.row;
@@ -300,7 +196,7 @@ function draw() {
         }
       }
     } else {
-      getCanvasCoords(canvasCoords, deleteInfo.toCoords);
+      getCanvasCoords(canvasCoords, bulldozer.currentCoords);
       buildTilePath(canvasCoords);
       ctx.fill();
     }
