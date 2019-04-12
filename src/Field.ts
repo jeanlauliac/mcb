@@ -1,89 +1,51 @@
 import Coords from "./Coords";
+import ScreenCoords from "./ScreenCoords";
+import createArray from "./createArray";
 
 type Tile = { type: string };
-
-export const width = 60;
-export const height = 200;
-
-const data = (() => {
-  let result = Array(height * width);
-  for (let i = 0; i < result.length; ++i) {
-    result[i] = createTile();
-  }
-  return result;
-})();
-
-export function getTileIndex(coords: Coords) {
-  return coords.row * width + coords.col;
-}
-
-export function createTile() {
-  return {
-    type: "grass"
-  };
-}
-
-export function getTile(index: number): Readonly<Tile> {
-  return data[index];
-}
-
-export function setTileType(index: number, type: string): void {
-  data[index].type = type;
-}
-
-export function areCoordsValid(coords: Coords, margin: number): boolean {
-  return (
-    coords.row >= 0 + margin &&
-    coords.row < height - margin &&
-    coords.col >= 0 + margin &&
-    coords.col < width - margin
-  );
-}
-
 const iter = new Coords();
-function fillRow(row: number, fromCol: number, toCol: number, type: string) {
-  iter.row = row;
-  for (iter.col = fromCol; iter.col <= toCol; ++iter.col) {
-    data[getTileIndex(iter)].type = type;
+
+export default class Field {
+  _size = new ScreenCoords();
+  _data: Array<Tile>;
+
+  constructor(size: ScreenCoords) {
+    this._size.assign(size);
+    this._data = createArray(
+      size.x * size.y,
+      () => ({ type: "grass" } as Tile)
+    );
+  }
+
+  get size(): Readonly<ScreenCoords> {
+    return this._size;
+  }
+
+  getTileIndex(coords: Coords): number {
+    return coords.row * this._size.x + coords.col;
+  }
+
+  getTile(index: number): Readonly<Tile> {
+    return this._data[index];
+  }
+
+  setTileType(index: number, type: string): void {
+    this._data[index].type = type;
+  }
+
+  areCoordsValid(coords: Coords, margin: number): boolean {
+    return (
+      coords.row >= 0 + margin &&
+      coords.row < this._size.y - margin &&
+      coords.col >= 0 + margin &&
+      coords.col < this._size.x - margin
+    );
+  }
+
+  fillRow(row: number, fromCol: number, toCol: number, type: string) {
+    iter.row = row;
+    for (iter.col = fromCol; iter.col <= toCol; ++iter.col) {
+      this._data[this.getTileIndex(iter)].type = type;
+    }
   }
 }
-
-fillRow(8, 15, 16, "water");
-fillRow(9, 14, 17, "water");
-fillRow(10, 10, 18, "water");
-fillRow(11, 10, 18, "water");
-fillRow(12, 10, 18, "water");
-fillRow(13, 10, 17, "water");
-fillRow(14, 10, 16, "water");
-fillRow(15, 9, 15, "water");
-fillRow(16, 9, 15, "water");
-fillRow(17, 9, 15, "water");
-fillRow(18, 9, 16, "water");
-fillRow(19, 10, 16, "water");
-fillRow(20, 10, 15, "water");
-fillRow(21, 10, 13, "water");
-fillRow(22, 12, 12, "water");
-
-fillRow(21, 21, 22, "water");
-fillRow(22, 21, 23, "water");
-fillRow(23, 20, 23, "water");
-fillRow(24, 19, 24, "water");
-fillRow(25, 19, 24, "water");
-fillRow(26, 19, 25, "water");
-fillRow(27, 19, 25, "water");
-fillRow(28, 19, 25, "water");
-fillRow(29, 19, 25, "water");
-
-fillRow(26, 4, 7, "water");
-fillRow(27, 4, 7, "water");
-fillRow(28, 5, 8, "water");
-fillRow(29, 5, 10, "water");
-fillRow(30, 8, 25, "water");
-fillRow(31, 8, 24, "water");
-fillRow(32, 9, 24, "water");
-fillRow(33, 9, 24, "water");
-fillRow(33, 10, 24, "water");
-fillRow(34, 10, 24, "water");
-fillRow(35, 15, 24, "water");
-fillRow(36, 15, 24, "water");
-fillRow(37, 15, 24, "water");

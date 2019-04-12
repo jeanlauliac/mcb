@@ -1,4 +1,4 @@
-import * as Field from "./Field";
+import Field from "./Field";
 import findNeighbours, { Neighbours } from "./findNeighbours";
 import Coords from "./Coords";
 import WorldCoords from "./WorldCoords";
@@ -9,8 +9,6 @@ import Map from "./Map";
 import hashInteger from "./hashInteger";
 import Set from "./Set";
 import Dequeue from "./Dequeue";
-
-const { getTileIndex } = Field;
 
 const neighbours = createArray(4, () => new Coords());
 const pending = new MinBinaryHeap(512, () => new Coords());
@@ -36,6 +34,7 @@ Implement the A* algo.
 */
 export default function findShortestPath(
   result: Dequeue<Coords>,
+  field: Field,
   from: Coords,
   to: Coords
 ): void {
@@ -46,13 +45,13 @@ export default function findShortestPath(
   result.clear();
 
   current.assign(from);
-  if (Field.getTile(getTileIndex(current)).type === "water") {
+  if (field.getTile(field.getTileIndex(current)).type === "water") {
     return;
   }
   pending.push(0).assign(current);
-  pendingIds.add(getTileIndex(current));
+  pendingIds.add(field.getTileIndex(current));
 
-  const startTile = dataByTiles.set(getTileIndex(current));
+  const startTile = dataByTiles.set(field.getTileIndex(current));
   startTile.score = 0;
   startTile.predecessor.assign(current);
   startTile.direction = -1;
@@ -66,7 +65,7 @@ export default function findShortestPath(
       found = true;
       break;
     }
-    const curTileIx = getTileIndex(current);
+    const curTileIx = field.getTileIndex(current);
     pendingIds.delete(curTileIx);
 
     const tile = dataByTiles.get(curTileIx);
@@ -77,9 +76,9 @@ export default function findShortestPath(
       const neighbour = neighbours[i];
       if (
         neighbour.row < 1 ||
-        neighbour.row >= Field.height - 1 ||
+        neighbour.row >= field.size.y - 1 ||
         neighbour.col < 1 ||
-        neighbour.col >= Field.width - 1
+        neighbour.col >= field.size.x - 1
       ) {
         continue;
       }
@@ -87,8 +86,8 @@ export default function findShortestPath(
       const turn = direction >= 0 ? (4 + direction - i) % 4 : 0;
       if (turn === 2) continue;
 
-      const neighbourIx = getTileIndex(neighbour);
-      if (Field.getTile(neighbourIx).type === "water") {
+      const neighbourIx = field.getTileIndex(neighbour);
+      if (field.getTile(neighbourIx).type === "water") {
         continue;
       }
       const { row, col } = neighbour;
@@ -144,9 +143,9 @@ export default function findShortestPath(
   if (!found) return;
 
   result.push().assign(current);
-  let nextTile = dataByTiles.get(getTileIndex(current));
+  let nextTile = dataByTiles.get(field.getTileIndex(current));
   while (nextTile != null && nextTile.score > 0) {
     result.push().assign(nextTile.predecessor);
-    nextTile = dataByTiles.get(getTileIndex(nextTile.predecessor));
+    nextTile = dataByTiles.get(field.getTileIndex(nextTile.predecessor));
   }
 }

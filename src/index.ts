@@ -1,6 +1,5 @@
 import pickTile from "./pickTile";
 import { TILE_HALF_WIDTH, TILE_HALF_HEIGHT } from "./constants";
-import * as Field from "./Field";
 import findShortestPath, { Path } from "./findShortestPath";
 import findNeighbours, { Neighbours } from "./findNeighbours";
 import Coords from "./Coords";
@@ -16,6 +15,7 @@ import RoadBuilder, {
 import ScreenCoords from "./ScreenCoords";
 import WorldCoords from "./WorldCoords";
 import Bulldozer from "./Bulldozer";
+import Field from "./Field";
 
 const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
@@ -72,8 +72,51 @@ const mouseEvents = new Dequeue<LocalMouseEvent>(
   () => new LocalMouseEvent()
 );
 
-const roadBuilder = new RoadBuilder();
-const bulldozer = new Bulldozer();
+const field = new Field(new ScreenCoords(60, 200));
+const fillRow = field.fillRow.bind(field);
+
+fillRow(8, 15, 16, "water");
+fillRow(9, 14, 17, "water");
+fillRow(10, 10, 18, "water");
+fillRow(11, 10, 18, "water");
+fillRow(12, 10, 18, "water");
+fillRow(13, 10, 17, "water");
+fillRow(14, 10, 16, "water");
+fillRow(15, 9, 15, "water");
+fillRow(16, 9, 15, "water");
+fillRow(17, 9, 15, "water");
+fillRow(18, 9, 16, "water");
+fillRow(19, 10, 16, "water");
+fillRow(20, 10, 15, "water");
+fillRow(21, 10, 13, "water");
+fillRow(22, 12, 12, "water");
+
+fillRow(21, 21, 22, "water");
+fillRow(22, 21, 23, "water");
+fillRow(23, 20, 23, "water");
+fillRow(24, 19, 24, "water");
+fillRow(25, 19, 24, "water");
+fillRow(26, 19, 25, "water");
+fillRow(27, 19, 25, "water");
+fillRow(28, 19, 25, "water");
+fillRow(29, 19, 25, "water");
+
+fillRow(26, 4, 7, "water");
+fillRow(27, 4, 7, "water");
+fillRow(28, 5, 8, "water");
+fillRow(29, 5, 10, "water");
+fillRow(30, 8, 25, "water");
+fillRow(31, 8, 24, "water");
+fillRow(32, 9, 24, "water");
+fillRow(33, 9, 24, "water");
+fillRow(33, 10, 24, "water");
+fillRow(34, 10, 24, "water");
+fillRow(35, 15, 24, "water");
+fillRow(36, 15, 24, "water");
+fillRow(37, 15, 24, "water");
+
+const roadBuilder = new RoadBuilder(field);
+const bulldozer = new Bulldozer(field);
 const camDelta = new ScreenCoords();
 
 function update(coef: number) {
@@ -154,8 +197,8 @@ function draw() {
 
   pickTile(topLeftCoords, camera.x, camera.y);
   pickTile(bottomRightCoords, camera.x + width, camera.y + height);
-  const maxRow = Math.min(bottomRightCoords.row + 2, Field.height);
-  const maxCol = Math.min(bottomRightCoords.col + 2, Field.width);
+  const maxRow = Math.min(bottomRightCoords.row + 2, field.size.y);
+  const maxCol = Math.min(bottomRightCoords.col + 2, field.size.x);
 
   for (
     drawCoords.row = Math.max(0, topLeftCoords.row - 1);
@@ -186,7 +229,7 @@ function draw() {
           ++piter.col
         ) {
           unproj.unprojectFrom(piter);
-          if (!Field.areCoordsValid(unproj, 1)) {
+          if (!field.areCoordsValid(unproj, 1)) {
             continue;
           }
           getCanvasCoords(canvasCoords, unproj);
@@ -217,8 +260,8 @@ function draw() {
       ) {
         farmBaseTiles[i].unprojectFrom(projTo);
         const tileIx =
-          farmBaseTiles[i].row * Field.width + farmBaseTiles[i].col;
-        const tile = Field.getTile(tileIx);
+          farmBaseTiles[i].row * field.size.x + farmBaseTiles[i].col;
+        const tile = field.getTile(tileIx);
         canBuild = canBuild && tile.type === "grass";
         ++i;
       }
@@ -273,8 +316,8 @@ const TILE_IMG_INDICES: { [key: string]: number } = {
 
 function drawTile(target: Coords) {
   getCanvasCoords(canvasCoords, target);
-  const tileIx = Field.getTileIndex(target);
-  const tile = Field.getTile(tileIx);
+  const tileIx = field.getTileIndex(target);
+  const tile = field.getTile(tileIx);
   let type = tile.type;
 
   const { tileMap } = roadBuilder;
@@ -312,7 +355,14 @@ function buildTilePath(coords: CanvasCoords): void {
   ctx.closePath();
 }
 
-const camMove = { x: 0, y: 0, camX: 0, camY: 0, moving: false, prev: new ScreenCoords() };
+const camMove = {
+  x: 0,
+  y: 0,
+  camX: 0,
+  camY: 0,
+  moving: false,
+  prev: new ScreenCoords()
+};
 
 function handleMouseEvent(type: MouseEventType, ev: MouseEvent) {
   if (mouseEvents.isFull()) {
@@ -368,11 +418,11 @@ function handleCameraMove(ev: LocalMouseEvent) {
 
 function restrictCamera() {
   if (camera.x < 0) camera.x = 0;
-  const camMaxX = (Field.width - 1) * TILE_HALF_WIDTH * 2 - width;
+  const camMaxX = (field.size.x - 1) * TILE_HALF_WIDTH * 2 - width;
   if (camera.x > camMaxX) camera.x = camMaxX;
 
   if (camera.y < 0) camera.y = 0;
-  const camMaxY = (Field.height - 1) * TILE_HALF_HEIGHT - height;
+  const camMaxY = (field.size.y - 1) * TILE_HALF_HEIGHT - height;
   if (camera.y > camMaxY) camera.y = camMaxY;
 }
 

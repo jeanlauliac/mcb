@@ -3,8 +3,8 @@ import WorldCoords from "./WorldCoords";
 import ScreenCoords from "./ScreenCoords";
 import pickTile from "./pickTile";
 import { LocalMouseEvent } from "./MouseEvents";
-import * as Field from "./Field";
-import {ROAD_TYPE_REVERSE_TABLE, ROAD_TYPE_TABLE} from "./RoadBuilder";
+import Field from "./Field";
+import { ROAD_TYPE_REVERSE_TABLE, ROAD_TYPE_TABLE } from "./RoadBuilder";
 
 const pickedTile = new Coords();
 const unproj = new Coords();
@@ -15,6 +15,11 @@ export default class Bulldozer {
   _fromCoords = new Coords();
   _toCoords = new Coords();
   _square = { projFrom: new WorldCoords(), projTo: new WorldCoords() };
+  _field: Field;
+
+  constructor(field: Field) {
+    this._field = field;
+  }
 
   enable(coords: ScreenCoords, camera: ScreenCoords): void {
     this._isDeleting = false;
@@ -40,36 +45,50 @@ export default class Bulldozer {
         ++piter.col
       ) {
         unproj.unprojectFrom(piter);
-        if (!Field.areCoordsValid(unproj, 1)) {
+        if (!this._field.areCoordsValid(unproj, 1)) {
           continue;
         }
-        const ix = Field.getTileIndex(unproj);
-        const tile = Field.getTile(ix);
+        const ix = this._field.getTileIndex(unproj);
+        const tile = this._field.getTile(ix);
         if (ROAD_TYPE_REVERSE_TABLE[tile.type] != null) {
-          Field.setTileType(ix, "grass");
+          this._field.setTileType(ix, "grass");
         }
       }
     }
 
     piter.row = sq.projFrom.row - 1;
     for (piter.col = sq.projFrom.col; piter.col <= sq.projTo.col; ++piter.col) {
-      cleanupDeletedRoadEdge(piter, 0b1011);
+      this._cleanupDeletedRoadEdge(piter, 0b1011);
     }
 
     piter.row = sq.projTo.row + 1;
     for (piter.col = sq.projFrom.col; piter.col <= sq.projTo.col; ++piter.col) {
-      cleanupDeletedRoadEdge(piter, 0b1110);
+      this._cleanupDeletedRoadEdge(piter, 0b1110);
     }
 
     piter.col = sq.projFrom.col - 1;
     for (piter.row = sq.projFrom.row; piter.row <= sq.projTo.row; ++piter.row) {
-      cleanupDeletedRoadEdge(piter, 0b0111);
+      this._cleanupDeletedRoadEdge(piter, 0b0111);
     }
 
     piter.col = sq.projTo.col + 1;
     for (piter.row = sq.projFrom.row; piter.row <= sq.projTo.row; ++piter.row) {
-      cleanupDeletedRoadEdge(piter, 0b1101);
+      this._cleanupDeletedRoadEdge(piter, 0b1101);
     }
+  }
+
+  _cleanupDeletedRoadEdge(coords: WorldCoords, maskFilter: number): void {
+    unproj.unprojectFrom(coords);
+    if (!this._field.areCoordsValid(unproj, 1)) {
+      return;
+    }
+    const ix = this._field.getTileIndex(unproj);
+    const tile = this._field.getTile(ix);
+
+    let mask = ROAD_TYPE_REVERSE_TABLE[tile.type];
+    if (mask == null) return;
+    mask &= maskFilter;
+    this._field.setTileType(ix, ROAD_TYPE_TABLE[mask] || "grass");
   }
 
   _handleMouseMove(coords: ScreenCoords, camera: ScreenCoords) {
@@ -85,11 +104,7 @@ export default class Bulldozer {
 
   _updateCurrentCoords(target: Coords) {
     this._toCoords.assign(target);
-    projectSquare(
-      this._square,
-      this._fromCoords,
-      this._toCoords,
-    );
+    projectSquare(this._square, this._fromCoords, this._toCoords);
   }
 
   get square() {
@@ -116,18 +131,4 @@ function projectSquare(res: Square, from: Coords, to: Coords): void {
     res.projTo.col = res.projFrom.col;
     res.projFrom.col = col;
   }
-}
-
-function cleanupDeletedRoadEdge(coords: WorldCoords, maskFilter: number): void {
-  unproj.unprojectFrom(coords);
-  if (!Field.areCoordsValid(unproj, 1)) {
-    return;
-  }
-  const ix = Field.getTileIndex(unproj);
-  const tile = Field.getTile(ix);
-
-  let mask = ROAD_TYPE_REVERSE_TABLE[tile.type];
-  if (mask == null) return;
-  mask &= maskFilter;
-  Field.setTileType(ix, ROAD_TYPE_TABLE[mask] || "grass");
 }

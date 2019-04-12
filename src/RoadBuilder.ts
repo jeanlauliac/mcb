@@ -8,7 +8,7 @@ import pickTile from "./pickTile";
 import ScreenCoords from "./ScreenCoords";
 import findNeighbours from "./findNeighbours";
 import findShortestPath from "./findShortestPath";
-import * as Field from "./Field";
+import Field from "./Field";
 
 const pickedTile = new Coords();
 const path = new Dequeue(512, () => new Coords());
@@ -28,6 +28,11 @@ export default class RoadBuilder {
     () => ({ type: "" }),
     hashInteger
   );
+  _field: Field;
+
+  constructor(field: Field) {
+    this._field = field;
+  }
 
   enable(mouseCoords: ScreenCoords, camera: ScreenCoords) {
     this._isBuilding = false;
@@ -45,7 +50,7 @@ export default class RoadBuilder {
     if (!ev.isPrimaryUp()) return;
     this._isBuilding = false;
     for (const tile of this._tiles) {
-      Field.setTileType(Field.getTileIndex(tile.coords), tile.type);
+      this._field.setTileType(this._field.getTileIndex(tile.coords), tile.type);
     }
   }
 
@@ -62,7 +67,12 @@ export default class RoadBuilder {
 
   _updateCurrentCoords(target: Coords) {
     this._currentCoords.assign(target);
-    findShortestPath(path, this._originCoords, this._currentCoords);
+    findShortestPath(
+      path,
+      this._field,
+      this._originCoords,
+      this._currentCoords
+    );
 
     this._tiles.clear();
     this._tileMap.clear();
@@ -74,15 +84,17 @@ export default class RoadBuilder {
       roadTile.coords.assign(coords);
       path.shift();
 
-      const index = Field.getTileIndex(coords);
+      const index = this._field.getTileIndex(coords);
       findNeighbours(neighbours, coords);
       for (let i = 0; i < 4; ++i) {
-        const ni = Field.getTileIndex(neighbours[i]);
-        const nextIndex = path.isEmpty() ? -1 : Field.getTileIndex(path.first);
+        const ni = this._field.getTileIndex(neighbours[i]);
+        const nextIndex = path.isEmpty()
+          ? -1
+          : this._field.getTileIndex(path.first);
         neighbourSt[i] = ni === prevIndex || ni === nextIndex;
       }
 
-      const tile = Field.getTile(index);
+      const tile = this._field.getTile(index);
       roadTile.type = identifyRoadType(neighbourSt, tile.type);
       this._tileMap.set(index).type = roadTile.type;
       prevIndex = index;
