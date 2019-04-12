@@ -9,6 +9,7 @@ import { ROAD_TYPE_REVERSE_TABLE, ROAD_TYPE_TABLE } from "./RoadBuilder";
 const pickedTile = new Coords();
 const unproj = new Coords();
 const piter = new WorldCoords();
+const fieldCoords = new ScreenCoords();
 
 export default class Bulldozer {
   _isDeleting = false;
@@ -92,7 +93,8 @@ export default class Bulldozer {
   }
 
   _handleMouseMove(coords: ScreenCoords, camera: ScreenCoords) {
-    pickTile(pickedTile, coords.x + camera.x, coords.y + camera.y);
+    fieldCoords.assign(coords).sum(camera);
+    pickTile(pickedTile, fieldCoords);
     if (!this._isDeleting) {
       this._toCoords.assign(pickedTile);
       return;

@@ -9,14 +9,16 @@ export default class WorldCoords {
     this.col = -Math.floor(source.row / 2) + source.col;
   }
 
-  assign(from: WorldCoords) {
+  assign(from: WorldCoords): this {
     this.row = from.row;
     this.col = from.col;
+    return this;
   }
 
-  set(row: number, col: number) {
+  set(row: number, col: number): this {
     this.row = row;
     this.col = col;
+    return this;
   }
 
   equals(target: WorldCoords): boolean {

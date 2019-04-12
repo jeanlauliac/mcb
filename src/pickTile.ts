@@ -1,15 +1,15 @@
 import { TILE_HALF_WIDTH, TILE_HALF_HEIGHT } from "./constants";
 import Coords from "./Coords";
+import ScreenCoords from "./ScreenCoords";
 
 export default function pickTile(
   pickedCoords: Coords,
-  fieldX: number,
-  fieldY: number
+  coords: ScreenCoords
 ): void {
-  let gridRow = Math.floor(fieldY / TILE_HALF_HEIGHT);
-  let gridCol = Math.floor(fieldX / TILE_HALF_WIDTH);
-  let localX = fieldX % TILE_HALF_WIDTH;
-  let localY = fieldY % TILE_HALF_HEIGHT;
+  let gridRow = Math.floor(coords.y / TILE_HALF_HEIGHT);
+  let gridCol = Math.floor(coords.x / TILE_HALF_WIDTH);
+  let localX = coords.x % TILE_HALF_WIDTH;
+  let localY = coords.y % TILE_HALF_HEIGHT;
   let row = 0;
   let col = 0;
   if ((gridRow + gridCol) % 2 === 0) {
@@ -51,8 +51,7 @@ export default function pickTile(
     }
   }
 
-  pickedCoords.row = row;
-  pickedCoords.col = col;
+  pickedCoords.set(row, col);
 }
 
 function crossProduct(aX: number, aY: number, bX: number, bY: number) {

@@ -7,23 +7,27 @@ export default class ScreenCoords {
     this.y = y;
   }
 
-  set(x: number, y: number) {
+  set(x: number, y: number): this {
     this.x = x;
     this.y = y;
+    return this;
   }
 
-  assign(coords: ScreenCoords): void {
+  assign(coords: ScreenCoords): this {
     this.x = coords.x;
     this.y = coords.y;
+    return this;
   }
 
-  sum(coords: ScreenCoords): void {
+  sum(coords: ScreenCoords): this {
     this.x += coords.x;
     this.y += coords.y;
+    return this;
   }
 
-  scale(scalar: number) {
+  scale(scalar: number): this {
     this.x *= scalar;
     this.y *= scalar;
+    return this;
   }
 }

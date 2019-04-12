@@ -14,6 +14,7 @@ const pickedTile = new Coords();
 const path = new Dequeue(512, () => new Coords());
 const neighbours = createArray(4, () => new Coords());
 const neighbourSt = createArray(4, () => false);
+const fieldCoords = new ScreenCoords();
 
 export default class RoadBuilder {
   _isBuilding = false;
@@ -55,7 +56,8 @@ export default class RoadBuilder {
   }
 
   _handleMouseMove(coords: ScreenCoords, camera: ScreenCoords) {
-    pickTile(pickedTile, coords.x + camera.x, coords.y + camera.y);
+    fieldCoords.assign(coords).sum(camera);
+    pickTile(pickedTile, fieldCoords);
     if (!this._isBuilding) {
       this._currentCoords.assign(pickedTile);
       return;

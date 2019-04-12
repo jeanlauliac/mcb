@@ -21,12 +21,11 @@ const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
 
 const dpr = window.devicePixelRatio || 1;
-const width = window.innerWidth;
-const height = window.innerHeight;
-canvas.width = width * dpr;
-canvas.height = height * dpr;
-canvas.style.width = width + "px";
-canvas.style.height = height + "px";
+const windowSize = new ScreenCoords(window.innerWidth, window.innerHeight);
+canvas.width = windowSize.x * dpr;
+canvas.height = windowSize.y * dpr;
+canvas.style.width = windowSize.x + "px";
+canvas.style.height = windowSize.y + "px";
 
 const ctx = canvas.getContext("2d");
 ctx.scale(dpr, dpr);
@@ -170,9 +169,11 @@ function update(coef: number) {
 const pickedTile = new Coords();
 
 const farmCoords = new Coords();
+const fieldCoords = new ScreenCoords();
 
 function handleFarmMove(coords: ScreenCoords) {
-  pickTile(pickedTile, coords.x + camera.x, coords.y + camera.y);
+  fieldCoords.assign(coords).sum(camera);
+  pickTile(pickedTile, fieldCoords);
   farmCoords.assign(pickedTile);
 }
 
@@ -195,8 +196,9 @@ function draw() {
   ctx.strokeStyle = "#a0a0a0";
   ctx.lineWidth = 1;
 
-  pickTile(topLeftCoords, camera.x, camera.y);
-  pickTile(bottomRightCoords, camera.x + width, camera.y + height);
+  pickTile(topLeftCoords, camera);
+  fieldCoords.assign(camera).sum(windowSize);
+  pickTile(bottomRightCoords, fieldCoords);
   const maxRow = Math.min(bottomRightCoords.row + 2, field.size.y);
   const maxCol = Math.min(bottomRightCoords.col + 2, field.size.x);
 
@@ -418,11 +420,11 @@ function handleCameraMove(ev: LocalMouseEvent) {
 
 function restrictCamera() {
   if (camera.x < 0) camera.x = 0;
-  const camMaxX = (field.size.x - 1) * TILE_HALF_WIDTH * 2 - width;
+  const camMaxX = (field.size.x - 1) * TILE_HALF_WIDTH * 2 - windowSize.x;
   if (camera.x > camMaxX) camera.x = camMaxX;
 
   if (camera.y < 0) camera.y = 0;
-  const camMaxY = (field.size.y - 1) * TILE_HALF_HEIGHT - height;
+  const camMaxY = (field.size.y - 1) * TILE_HALF_HEIGHT - windowSize.y;
   if (camera.y > camMaxY) camera.y = camMaxY;
 }
 
