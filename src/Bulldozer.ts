@@ -2,14 +2,13 @@ import Coords from "./Coords";
 import WorldCoords from "./WorldCoords";
 import ScreenCoords from "./ScreenCoords";
 import pickTile from "./pickTile";
-import { LocalMouseEvent } from "./MouseEvents";
+import { MouseEventType } from "./MouseEvents";
 import Field from "./Field";
 import { ROAD_TYPE_REVERSE_TABLE, ROAD_TYPE_TABLE } from "./RoadBuilder";
 
 const pickedTile = new Coords();
 const unproj = new Coords();
 const piter = new WorldCoords();
-const fieldCoords = new ScreenCoords();
 
 export default class Bulldozer {
   _isDeleting = false;
@@ -22,21 +21,32 @@ export default class Bulldozer {
     this._field = field;
   }
 
-  enable(coords: ScreenCoords, camera: ScreenCoords): void {
+  enable(fieldCoords: ScreenCoords): void {
     this._isDeleting = false;
-    this._handleMouseMove(coords, camera);
+    this._handleMouseMove(fieldCoords);
   }
 
-  handleMouseEvent(ev: LocalMouseEvent, camera: ScreenCoords): void {
-    this._handleMouseMove(ev.coords, camera);
-    if (ev.isPrimaryDown()) {
-      this._isDeleting = true;
-      this._fromCoords.assign(this._toCoords);
-      this._updateCurrentCoords(this._toCoords);
-      return;
+  handleMouseEvent(type: MouseEventType, fieldCoords: ScreenCoords): void {
+    switch (type) {
+      case MouseEventType.Move:
+        return this._handleMouseMove(fieldCoords);
+      case MouseEventType.Up:
+        return this._handleMouseClickUp();
+      case MouseEventType.Down:
+        return this._handleMouseClickDown();
     }
-    if (!ev.isPrimaryUp()) return;
 
+  }
+
+  _handleMouseClickDown() {
+    this._isDeleting = true;
+    this._fromCoords.assign(this._toCoords);
+    this._updateCurrentCoords(this._toCoords);
+    return;
+  }
+
+  _handleMouseClickUp() {
+    if (!this._isDeleting) return;
     this._isDeleting = false;
     const sq = this._square;
     for (piter.row = sq.projFrom.row; piter.row <= sq.projTo.row; ++piter.row) {
@@ -92,8 +102,7 @@ export default class Bulldozer {
     this._field.setTileType(ix, ROAD_TYPE_TABLE[mask] || "grass");
   }
 
-  _handleMouseMove(coords: ScreenCoords, camera: ScreenCoords) {
-    fieldCoords.assign(coords).sum(camera);
+  _handleMouseMove(fieldCoords: ScreenCoords) {
     pickTile(pickedTile, fieldCoords);
     if (!this._isDeleting) {
       this._toCoords.assign(pickedTile);

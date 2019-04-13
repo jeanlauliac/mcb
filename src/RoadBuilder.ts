@@ -3,7 +3,7 @@ import Dequeue from "./Dequeue";
 import Map from "./Map";
 import hashInteger from "./hashInteger";
 import createArray from "./createArray";
-import { LocalMouseEvent } from "./MouseEvents";
+import { LocalMouseEvent, MouseEventType } from "./MouseEvents";
 import pickTile from "./pickTile";
 import ScreenCoords from "./ScreenCoords";
 import findNeighbours from "./findNeighbours";
@@ -35,28 +35,37 @@ export default class RoadBuilder {
     this._field = field;
   }
 
-  enable(mouseCoords: ScreenCoords, camera: ScreenCoords) {
+  enable(fieldCoords: ScreenCoords) {
     this._isBuilding = false;
-    this._handleMouseMove(mouseCoords, camera);
+    this._handleMouseMove(fieldCoords);
   }
 
-  handleMouseEvent(ev: LocalMouseEvent, camera: ScreenCoords): void {
-    this._handleMouseMove(ev.coords, camera);
-    if (!this._isBuilding && ev.isPrimaryDown()) {
-      this._isBuilding = true;
-      this._originCoords.assign(this._currentCoords);
-      this._updateCurrentCoords(this._currentCoords);
-      return;
+  handleMouseEvent(type: MouseEventType, fieldCoords: ScreenCoords): void {
+    switch (type) {
+      case MouseEventType.Move:
+        return this._handleMouseMove(fieldCoords);
+      case MouseEventType.Up:
+        return this._handleMouseClickUp();
+      case MouseEventType.Down:
+        return this._handleMouseClickDown();
     }
-    if (!ev.isPrimaryUp()) return;
+  }
+
+  _handleMouseClickDown(): void {
+    this._isBuilding = true;
+    this._originCoords.assign(this._currentCoords);
+    this._updateCurrentCoords(this._currentCoords);
+  }
+
+  _handleMouseClickUp(): void {
+    if (!this._isBuilding) return;
     this._isBuilding = false;
     for (const tile of this._tiles) {
       this._field.setTileType(this._field.getTileIndex(tile.coords), tile.type);
     }
   }
 
-  _handleMouseMove(coords: ScreenCoords, camera: ScreenCoords) {
-    fieldCoords.assign(coords).sum(camera);
+  _handleMouseMove(fieldCoords: ScreenCoords) {
     pickTile(pickedTile, fieldCoords);
     if (!this._isBuilding) {
       this._currentCoords.assign(pickedTile);

@@ -34,6 +34,7 @@ let lastTimestamp: number;
 const tickLength = Math.floor((1 / 30) * 1000); // 30 Hz
 
 const tiles: any = document.getElementById("tiles");
+const items: any = document.getElementById("items");
 
 function requestStep() {
   window.requestAnimationFrame(step);
@@ -121,31 +122,33 @@ const camDelta = new ScreenCoords();
 function update(coef: number) {
   for (; !mouseEvents.isEmpty(); mouseEvents.shift()) {
     const ev = mouseEvents.first;
+    fieldCoords.assign(ev.coords).sum(camera);
     switch (cursorMode) {
       case "move":
         handleCameraMove(ev);
         break;
       case "road":
-        roadBuilder.handleMouseEvent(ev, camera);
+        roadBuilder.handleMouseEvent(ev.type, fieldCoords);
         break;
       case "farm":
         handleFarmMove(ev.coords);
         break;
       case "delete":
-        bulldozer.handleMouseEvent(ev, camera);
+        bulldozer.handleMouseEvent(ev.type, fieldCoords);
         break;
     }
     mouseCoords.assign(ev.coords);
   }
+  fieldCoords.assign(mouseCoords).sum(camera);
   for (let i = 0; i < keyPressCount; ++i) {
     switch (keysPresses[i]) {
       case "r":
         cursorMode = "road";
-        roadBuilder.enable(mouseCoords, camera);
+        roadBuilder.enable(fieldCoords);
         break;
       case "d":
         cursorMode = "delete";
-        bulldozer.enable(mouseCoords, camera);
+        bulldozer.enable(fieldCoords);
         break;
       case "f":
         cursorMode = "farm";
