@@ -71,7 +71,7 @@ const mouseEvents = new Dequeue<LocalMouseEvent>(
   () => new LocalMouseEvent()
 );
 
-const field = new Field(new ScreenCoords(60, 200));
+const field = new Field(new ScreenCoords(60, 100));
 const fillRow = field.fillRow.bind(field);
 
 fillRow(8, 15, 16, "water");
@@ -186,7 +186,7 @@ const topLeftCoords = new Coords();
 const bottomRightCoords = new Coords();
 
 type CanvasCoords = { x: number; y: number };
-const canvasCoords: CanvasCoords = { x: 0, y: 0 };
+const canvasCoords = new ScreenCoords();
 
 const farmBaseTiles = createArray(9, () => new Coords());
 const drawCoords = new Coords();
@@ -276,6 +276,26 @@ function draw() {
       ctx.fill();
     }
   }
+
+  drawMiniMap();
+}
+
+function drawMiniMap() {
+  iter.set(field.size.y - 1, field.size.x - 1);
+  getCanvasCoords(canvasCoords, iter);
+  canvasCoords.sum(camera);
+
+  const ratio = canvasCoords.x / canvasCoords.y;
+  const height = Math.floor(80 / ratio);
+  const left = windowSize.x - 100;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+  ctx.fillRect(left, 20, 80, height);
+
+  const percX = camera.x / canvasCoords.x;
+  const percY = camera.y / canvasCoords.y;
+
+  ctx.strokeStyle = "rgba(255, 255, 255, 1)";
+  ctx.strokeRect(left + percX * 80, 20 + percY * height, windowSize.x / canvasCoords.x * 80, windowSize.y / canvasCoords.y * height);
 }
 
 const TILE_IMG_WIDTH = TILE_HALF_WIDTH * 4;

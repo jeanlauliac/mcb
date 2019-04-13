@@ -25,6 +25,12 @@ export default class ScreenCoords {
     return this;
   }
 
+  subtract(coords: ScreenCoords): this {
+    this.x -= coords.x;
+    this.y -= coords.y;
+    return this;
+  }
+
   scale(scalar: number): this {
     this.x *= scalar;
     this.y *= scalar;
