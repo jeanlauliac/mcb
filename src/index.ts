@@ -131,7 +131,7 @@ function update(coef: number) {
         roadBuilder.handleMouseEvent(ev.type, fieldCoords);
         break;
       case "farm":
-        handleFarmMove(ev.coords);
+        handleFarmMouseEvent(ev.type, fieldCoords);
         break;
       case "delete":
         bulldozer.handleMouseEvent(ev.type, fieldCoords);
@@ -152,7 +152,7 @@ function update(coef: number) {
         break;
       case "f":
         cursorMode = "farm";
-        handleFarmMove(mouseCoords);
+        handleFarmMouseEvent(MouseEventType.Move, fieldCoords);
         break;
       case "Escape":
         cursorMode = "move";
@@ -174,10 +174,42 @@ const pickedTile = new Coords();
 const farmCoords = new Coords();
 const fieldCoords = new ScreenCoords();
 
-function handleFarmMove(coords: ScreenCoords) {
-  fieldCoords.assign(coords).sum(camera);
-  pickTile(pickedTile, fieldCoords);
-  farmCoords.assign(pickedTile);
+function handleFarmMouseEvent(type: MouseEventType, fieldCoords: ScreenCoords) {
+  if (type === MouseEventType.Move) {
+    pickTile(pickedTile, fieldCoords);
+    if (farmCoords.equals(pickedTile)) return;
+    farmCoords.assign(pickedTile);
+
+    projFrom.projectFrom(farmCoords);
+    farmBaseTiles.clear();
+    canBuildFarm = true;
+    for (
+      projTo.row = projFrom.row - 1;
+      projTo.row < projFrom.row + 2;
+      ++projTo.row
+    ) {
+      for (
+        projTo.col = projFrom.col - 1;
+        projTo.col < projFrom.col + 2;
+        ++projTo.col
+      ) {
+        const coords = farmBaseTiles.push();
+        coords.unprojectFrom(projTo);
+        const tileIx = coords.row * field.size.x + coords.col;
+        const tile = field.getTile(tileIx);
+        canBuildFarm = canBuildFarm && tile.type === "grass";
+      }
+    }
+
+    return;
+  }
+  if (type !== MouseEventType.Up) return;
+  if (!canBuildFarm) return;
+  for (const coords of farmBaseTiles) {
+    field.setTileType(field.getTileIndex(coords), 'shack', false);
+  }
+  field.setTileType(field.getTileIndex(farmCoords), 'shack');
+  canBuildFarm = false;
 }
 
 const projFrom = new WorldCoords();
@@ -191,7 +223,8 @@ const bottomRightCoords = new Coords();
 type CanvasCoords = { x: number; y: number };
 const canvasCoords = new ScreenCoords();
 
-const farmBaseTiles = createArray(9, () => new Coords());
+const farmBaseTiles = new Dequeue(64, () => new Coords());
+let canBuildFarm = false;
 const drawCoords = new Coords();
 const piter = new WorldCoords();
 
@@ -250,31 +283,10 @@ function draw() {
   }
 
   if (cursorMode === "farm") {
-    projFrom.projectFrom(farmCoords);
-    let i = 0;
-    let canBuild = true;
-    for (
-      projTo.row = projFrom.row - 1;
-      projTo.row < projFrom.row + 2;
-      ++projTo.row
-    ) {
-      for (
-        projTo.col = projFrom.col - 1;
-        projTo.col < projFrom.col + 2;
-        ++projTo.col
-      ) {
-        farmBaseTiles[i].unprojectFrom(projTo);
-        const tileIx =
-          farmBaseTiles[i].row * field.size.x + farmBaseTiles[i].col;
-        const tile = field.getTile(tileIx);
-        canBuild = canBuild && tile.type === "grass";
-        ++i;
-      }
-    }
 
-    ctx.fillStyle = canBuild ? "rgba(0, 255, 0, 0.5)" : "rgba(255, 0, 0, 0.5)";
-    for (i = 0; i < farmBaseTiles.length; ++i) {
-      getCanvasCoords(canvasCoords, farmBaseTiles[i]);
+    ctx.fillStyle = canBuildFarm ? "rgba(0, 255, 0, 0.5)" : "rgba(255, 0, 0, 0.5)";
+    for (const tile of farmBaseTiles) {
+      getCanvasCoords(canvasCoords, tile);
       buildTilePath(canvasCoords);
       ctx.fill();
     }
@@ -312,7 +324,7 @@ function drawTileImg(canvasCoords: CanvasCoords, index: number) {
     (index % 16) * TILE_IMG_WIDTH,
     Math.floor(index / 16) * TILE_IMG_HEIGHT,
     TILE_IMG_WIDTH,
-    TILE_HALF_HEIGHT * 8,
+    TILE_IMG_HEIGHT,
     dx,
     dy,
     TILE_HALF_WIDTH * 2,
@@ -321,6 +333,7 @@ function drawTileImg(canvasCoords: CanvasCoords, index: number) {
 }
 
 const TILE_IMG_INDICES: { [key: string]: number } = {
+  grass: 0,
   road_v: 1,
   road_h: 2,
   road_turn_left: 3,
@@ -343,6 +356,7 @@ function drawTile(target: Coords) {
   getCanvasCoords(canvasCoords, target);
   const tileIx = field.getTileIndex(target);
   const tile = field.getTile(tileIx);
+  if (!tile.drawn) return;
   let type = tile.type;
 
   const { tileMap } = roadBuilder;
@@ -351,10 +365,10 @@ function drawTile(target: Coords) {
     if (roadTile != null) type = roadTile.type;
   }
 
-  if (TILE_IMG_INDICES[type] != null) {
+  if (ITEMS_IMG_POSITION[type] != null) {
+    drawItem(canvasCoords, type)
+  } else if (TILE_IMG_INDICES[type] != null) {
     drawTileImg(canvasCoords, TILE_IMG_INDICES[type]);
-  } else if (type === "grass") {
-    drawTileImg(canvasCoords, 0);
   }
 
   if (cursorMode === "road" && roadBuilder.currentCoords.equals(target)) {
@@ -362,6 +376,25 @@ function drawTile(target: Coords) {
     ctx.fillStyle = "rgba(0, 255, 0, 0.5)";
     ctx.fill();
   }
+}
+
+const ITEMS_IMG_POSITION: {[key: string]: {offset: ScreenCoords, size: ScreenCoords, center: ScreenCoords}} = {
+  shack: {
+    offset: new ScreenCoords(0, 0),
+    size: new ScreenCoords(6, 10),
+    center: new ScreenCoords(3, 7),
+  }
+};
+
+function drawItem(coords: ScreenCoords, itemType: string) {
+  const data = ITEMS_IMG_POSITION[itemType];
+  const width = data.size.x * TILE_HALF_WIDTH;
+  const height  = data.size.y * TILE_HALF_HEIGHT;
+  ctx.drawImage(items, data.offset.x * TILE_HALF_WIDTH * 2, data.offset.y * TILE_HALF_HEIGHT * 2,
+    width * 2, height * 2,
+    coords.x - data.center.x * TILE_HALF_WIDTH,
+    coords.y - data.center.y * TILE_HALF_HEIGHT, width, height);
+
 }
 
 function getCanvasCoords(result: CanvasCoords, coords: Coords) {

@@ -2,7 +2,7 @@ import Coords from "./Coords";
 import ScreenCoords from "./ScreenCoords";
 import createArray from "./createArray";
 
-type Tile = { type: string };
+type Tile = { type: string, drawn: boolean };
 const iter = new Coords();
 
 export default class Field {
@@ -13,7 +13,7 @@ export default class Field {
     this._size.assign(size);
     this._data = createArray(
       size.x * size.y,
-      () => ({ type: "grass" } as Tile)
+      () => ({ type: "grass", drawn: true } as Tile)
     );
   }
 
@@ -29,8 +29,9 @@ export default class Field {
     return this._data[index];
   }
 
-  setTileType(index: number, type: string): void {
+  setTileType(index: number, type: string, drawn?: boolean): void {
     this._data[index].type = type;
+    this._data[index].drawn = drawn != null ? drawn : true;
   }
 
   areCoordsValid(coords: Coords, margin: number): boolean {

@@ -1,8 +1,13 @@
 import WorldCoords from "./WorldCoords";
 
 export default class Coords {
-  row = 0;
-  col = 0;
+  row: number;
+  col: number;
+
+  constructor(row = 0, col = 0)  {
+    this.row = row;
+    this.col = col;
+  }
 
   unprojectFrom(source: WorldCoords): void {
     this.row = source.row - source.col;
