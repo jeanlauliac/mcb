@@ -35,7 +35,6 @@ export default class Bulldozer {
       case MouseEventType.Down:
         return this._handleMouseClickDown();
     }
-
   }
 
   _handleMouseClickDown() {

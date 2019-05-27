@@ -206,9 +206,9 @@ function handleFarmMouseEvent(type: MouseEventType, fieldCoords: ScreenCoords) {
   if (type !== MouseEventType.Up) return;
   if (!canBuildFarm) return;
   for (const coords of farmBaseTiles) {
-    field.setTileType(field.getTileIndex(coords), 'shack', false);
+    field.setTileType(field.getTileIndex(coords), "shack", false);
   }
-  field.setTileType(field.getTileIndex(farmCoords), 'shack');
+  field.setTileType(field.getTileIndex(farmCoords), "shack");
   canBuildFarm = false;
 }
 
@@ -283,8 +283,9 @@ function draw() {
   }
 
   if (cursorMode === "farm") {
-
-    ctx.fillStyle = canBuildFarm ? "rgba(0, 255, 0, 0.5)" : "rgba(255, 0, 0, 0.5)";
+    ctx.fillStyle = canBuildFarm
+      ? "rgba(0, 255, 0, 0.5)"
+      : "rgba(255, 0, 0, 0.5)";
     for (const tile of farmBaseTiles) {
       getCanvasCoords(canvasCoords, tile);
       buildTilePath(canvasCoords);
@@ -310,7 +311,12 @@ function drawMiniMap() {
   const percY = camera.y / canvasCoords.y;
 
   ctx.strokeStyle = "rgba(255, 255, 255, 1)";
-  ctx.strokeRect(left + percX * 80, 20 + percY * height, windowSize.x / canvasCoords.x * 80, windowSize.y / canvasCoords.y * height);
+  ctx.strokeRect(
+    left + percX * 80,
+    20 + percY * height,
+    (windowSize.x / canvasCoords.x) * 80,
+    (windowSize.y / canvasCoords.y) * height
+  );
 }
 
 const TILE_IMG_WIDTH = TILE_HALF_WIDTH * 4;
@@ -366,7 +372,7 @@ function drawTile(target: Coords) {
   }
 
   if (ITEMS_IMG_POSITION[type] != null) {
-    drawItem(canvasCoords, type)
+    drawItem(canvasCoords, type);
   } else if (TILE_IMG_INDICES[type] != null) {
     drawTileImg(canvasCoords, TILE_IMG_INDICES[type]);
   }
@@ -378,23 +384,35 @@ function drawTile(target: Coords) {
   }
 }
 
-const ITEMS_IMG_POSITION: {[key: string]: {offset: ScreenCoords, size: ScreenCoords, center: ScreenCoords}} = {
+const ITEMS_IMG_POSITION: {
+  [key: string]: {
+    offset: ScreenCoords;
+    size: ScreenCoords;
+    center: ScreenCoords;
+  };
+} = {
   shack: {
     offset: new ScreenCoords(0, 0),
     size: new ScreenCoords(6, 10),
-    center: new ScreenCoords(3, 7),
+    center: new ScreenCoords(3, 7)
   }
 };
 
 function drawItem(coords: ScreenCoords, itemType: string) {
   const data = ITEMS_IMG_POSITION[itemType];
   const width = data.size.x * TILE_HALF_WIDTH;
-  const height  = data.size.y * TILE_HALF_HEIGHT;
-  ctx.drawImage(items, data.offset.x * TILE_HALF_WIDTH * 2, data.offset.y * TILE_HALF_HEIGHT * 2,
-    width * 2, height * 2,
+  const height = data.size.y * TILE_HALF_HEIGHT;
+  ctx.drawImage(
+    items,
+    data.offset.x * TILE_HALF_WIDTH * 2,
+    data.offset.y * TILE_HALF_HEIGHT * 2,
+    width * 2,
+    height * 2,
     coords.x - data.center.x * TILE_HALF_WIDTH,
-    coords.y - data.center.y * TILE_HALF_HEIGHT, width, height);
-
+    coords.y - data.center.y * TILE_HALF_HEIGHT,
+    width,
+    height
+  );
 }
 
 function getCanvasCoords(result: CanvasCoords, coords: Coords) {

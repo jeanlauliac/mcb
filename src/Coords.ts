@@ -4,7 +4,7 @@ export default class Coords {
   row: number;
   col: number;
 
-  constructor(row = 0, col = 0)  {
+  constructor(row = 0, col = 0) {
     this.row = row;
     this.col = col;
   }

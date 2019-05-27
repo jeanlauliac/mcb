@@ -2,7 +2,7 @@ import Coords from "./Coords";
 import ScreenCoords from "./ScreenCoords";
 import createArray from "./createArray";
 
-type Tile = { type: string, drawn: boolean };
+type Tile = { type: string; drawn: boolean };
 const iter = new Coords();
 
 export default class Field {
