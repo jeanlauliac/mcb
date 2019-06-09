@@ -34,7 +34,7 @@ let lastTimestamp: number;
 const tickLength = Math.floor((1 / 30) * 1000); // 30 Hz
 
 const tiles: any = document.getElementById("tiles");
-const items: any = document.getElementById("items");
+const entities: any = document.getElementById("entities");
 
 function requestStep() {
   window.requestAnimationFrame(step);
@@ -409,7 +409,7 @@ function drawEntity(coords: ScreenCoords, entity: Entity) {
   const width = data.size.x * TILE_HALF_WIDTH;
   const height = data.size.y * TILE_HALF_HEIGHT;
   ctx.drawImage(
-    items,
+    entities,
     data.offset.x * TILE_HALF_WIDTH * 2,
     data.offset.y * TILE_HALF_HEIGHT * 2,
     width * 2,
