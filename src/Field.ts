@@ -2,19 +2,33 @@ import Coords from "./Coords";
 import ScreenCoords from "./ScreenCoords";
 import createArray from "./createArray";
 
-type Tile = { type: string; drawn: boolean };
+type Tile = { type: string; entityID: number };
 const iter = new Coords();
+
+export class Entity {
+  type: string = 'invalid';
+  coords: Coords = new Coords();
+};
+
+export type EntitySlot = {inUse: boolean, entity: Entity};
 
 export default class Field {
   _size = new ScreenCoords();
   _data: Array<Tile>;
+  _entities: Array<EntitySlot>;
+  _nextEntityID: number;
 
   constructor(size: ScreenCoords) {
     this._size.assign(size);
-    this._data = createArray(
+    this._data = createArray<Tile>(
       size.x * size.y,
-      () => ({ type: "grass", drawn: true } as Tile)
+      () => ({ type: "grass", entityID: 0 })
     );
+    this._entities = createArray<EntitySlot>(
+      256,
+      () => ({inUse: false, entity: new Entity()}),
+    );
+    this._nextEntityID = 0;
   }
 
   get size(): Readonly<ScreenCoords> {
@@ -29,9 +43,28 @@ export default class Field {
     return this._data[index];
   }
 
-  setTileType(index: number, type: string, drawn?: boolean): void {
+  getEntity(id: number): Entity {
+    const slot = this._entities[id];
+    if (!slot.inUse) throw new Error('non existent entity ID');
+    return slot.entity;
+  }
+
+  setTileType(index: number, type: string, entityID: number = 0): void {
     this._data[index].type = type;
-    this._data[index].drawn = drawn != null ? drawn : true;
+    this._data[index].entityID = entityID;
+  }
+
+  createEntity(): number {
+    let maxSearch = 256;
+    while (this._entities[this._nextEntityID].inUse && maxSearch > 0) {
+      this._nextEntityID = (this._nextEntityID + 1) % this._entities.length;
+      --maxSearch;
+    }
+    if (maxSearch === 0) {
+      throw new Error('no more entity slots');
+    }
+    this._entities[this._nextEntityID].inUse = true;
+    return this._nextEntityID;
   }
 
   areCoordsValid(coords: Coords, margin: number): boolean {

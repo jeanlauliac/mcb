@@ -45,7 +45,7 @@ export default function findShortestPath(
   result.clear();
 
   current.assign(from);
-  if (field.getTile(field.getTileIndex(current)).type === "water") {
+  if (!isConstructible(field.getTile(field.getTileIndex(current)).type)) {
     return;
   }
   pending.push(0).assign(current);
@@ -87,7 +87,7 @@ export default function findShortestPath(
       if (turn === 2) continue;
 
       const neighbourIx = field.getTileIndex(neighbour);
-      if (field.getTile(neighbourIx).type === "water") {
+      if (!isConstructible(field.getTile(neighbourIx).type)) {
         continue;
       }
       const { row, col } = neighbour;
@@ -148,4 +148,8 @@ export default function findShortestPath(
     result.push().assign(nextTile.predecessor);
     nextTile = dataByTiles.get(field.getTileIndex(nextTile.predecessor));
   }
+}
+
+function isConstructible(tileType: string) {
+  return tileType !== 'water' && tileType !== 'entity';
 }

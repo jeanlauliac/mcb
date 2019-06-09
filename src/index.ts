@@ -15,7 +15,7 @@ import RoadBuilder, {
 import ScreenCoords from "./ScreenCoords";
 import WorldCoords from "./WorldCoords";
 import Bulldozer from "./Bulldozer";
-import Field from "./Field";
+import Field, {Entity} from "./Field";
 
 const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
@@ -171,7 +171,7 @@ function update(coef: number) {
 
 const pickedTile = new Coords();
 
-const farmCoords = new Coords();
+let farmCoords = new Coords();
 const fieldCoords = new ScreenCoords();
 
 function handleFarmMouseEvent(type: MouseEventType, fieldCoords: ScreenCoords) {
@@ -205,10 +205,13 @@ function handleFarmMouseEvent(type: MouseEventType, fieldCoords: ScreenCoords) {
   }
   if (type !== MouseEventType.Up) return;
   if (!canBuildFarm) return;
+  const entityID = field.createEntity();
+  const entity = field.getEntity(entityID);
   for (const coords of farmBaseTiles) {
-    field.setTileType(field.getTileIndex(coords), "shack", false);
+    field.setTileType(field.getTileIndex(coords), "entity", entityID);
   }
-  field.setTileType(field.getTileIndex(farmCoords), "shack");
+  entity.type = "shack";
+  entity.coords.assign(farmCoords);
   canBuildFarm = false;
 }
 
@@ -362,7 +365,7 @@ function drawTile(target: Coords) {
   getCanvasCoords(canvasCoords, target);
   const tileIx = field.getTileIndex(target);
   const tile = field.getTile(tileIx);
-  if (!tile.drawn) return;
+
   let type = tile.type;
 
   const { tileMap } = roadBuilder;
@@ -371,9 +374,12 @@ function drawTile(target: Coords) {
     if (roadTile != null) type = roadTile.type;
   }
 
-  if (ITEMS_IMG_POSITION[type] != null) {
-    drawItem(canvasCoords, type);
-  } else if (TILE_IMG_INDICES[type] != null) {
+  if (type === "entity") {
+    const entity = field.getEntity(tile.entityID);
+    if (entity.coords.equals(target)) {
+      drawEntity(canvasCoords, entity);
+    }
+  } else {
     drawTileImg(canvasCoords, TILE_IMG_INDICES[type]);
   }
 
@@ -398,8 +404,8 @@ const ITEMS_IMG_POSITION: {
   }
 };
 
-function drawItem(coords: ScreenCoords, itemType: string) {
-  const data = ITEMS_IMG_POSITION[itemType];
+function drawEntity(coords: ScreenCoords, entity: Entity) {
+  const data = ITEMS_IMG_POSITION[entity.type];
   const width = data.size.x * TILE_HALF_WIDTH;
   const height = data.size.y * TILE_HALF_HEIGHT;
   ctx.drawImage(
