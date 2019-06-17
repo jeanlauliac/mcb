@@ -61,7 +61,7 @@ export default class Bulldozer {
         const ix = this._field.getTileIndex(unproj);
         const tile = this._field.getTile(ix);
         if (ROAD_TYPE_REVERSE_TABLE[tile.type] != null) {
-          this._field.setTileType(ix, "grass");
+          this._field.setTileType(ix, "grass_1");
         }
       }
     }
@@ -98,7 +98,7 @@ export default class Bulldozer {
     let mask = ROAD_TYPE_REVERSE_TABLE[tile.type];
     if (mask == null) return;
     mask &= maskFilter;
-    this._field.setTileType(ix, ROAD_TYPE_TABLE[mask] || "grass");
+    this._field.setTileType(ix, ROAD_TYPE_TABLE[mask] || "grass_1");
   }
 
   _handleMouseMove(fieldCoords: ScreenCoords) {

@@ -151,5 +151,6 @@ export default function findShortestPath(
 }
 
 function isConstructible(tileType: string) {
-  return tileType !== 'water' && tileType !== 'entity';
+  return !tileType.startsWith('water') && !tileType.startsWith('shore')
+    && tileType !== 'entity';
 }

@@ -1,9 +1,11 @@
 import Coords from "./Coords";
 import ScreenCoords from "./ScreenCoords";
 import createArray from "./createArray";
+import PRNG from "./PRNG";
 
 type Tile = { type: string; entityID: number };
 const iter = new Coords();
+const rng = new PRNG(0);
 
 export class Entity {
   type: string = 'invalid';
@@ -22,7 +24,10 @@ export default class Field {
     this._size.assign(size);
     this._data = createArray<Tile>(
       size.x * size.y,
-      () => ({ type: "grass", entityID: 0 })
+      () => ({
+        type: ["grass_1", "grass_2", "grass_3"][rng.nextInt(3)],
+        entityID: 0,
+      })
     );
     this._entities = createArray<EntitySlot>(
       256,
@@ -79,7 +84,16 @@ export default class Field {
   fillRow(row: number, fromCol: number, toCol: number, type: string) {
     iter.row = row;
     for (iter.col = fromCol; iter.col <= toCol; ++iter.col) {
-      this._data[this.getTileIndex(iter)].type = type;
+      this._data[this.getTileIndex(iter)].type =
+        ["water_1", "water_2"][rng.nextInt(2)];
+    }
+  }
+
+  setRow(row: number, fromCol: number, types: Array<string>) {
+    iter.row = row;
+    let i = 0;
+    for (iter.col = fromCol; i < types.length; ++iter.col, ++i) {
+      this._data[this.getTileIndex(iter)].type = types[i];
     }
   }
 }

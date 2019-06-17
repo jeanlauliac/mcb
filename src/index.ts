@@ -29,12 +29,14 @@ canvas.style.height = windowSize.y + "px";
 
 const ctx = canvas.getContext("2d");
 ctx.scale(dpr, dpr);
+ctx.imageSmoothingEnabled = false;
 
 let lastTimestamp: number;
 const tickLength = Math.floor((1 / 30) * 1000); // 30 Hz
 
 const tiles: any = document.getElementById("tiles");
 const entities: any = document.getElementById("entities");
+const pixelTiles: any = document.getElementById("pixel-tiles");
 
 function requestStep() {
   window.requestAnimationFrame(step);
@@ -74,11 +76,16 @@ const mouseEvents = new Dequeue<LocalMouseEvent>(
 
 const field = new Field(new ScreenCoords(60, 100));
 const fillRow = field.fillRow.bind(field);
+const setRow = field.setRow.bind(field);
 
-fillRow(8, 15, 16, "water");
-fillRow(9, 14, 17, "water");
-fillRow(10, 10, 18, "water");
-fillRow(11, 10, 18, "water");
+setRow(8, 15, ["shore_top_inner", "shore_top_inner"]);
+setRow(9, 14, ["shore_top_left", "shore_top_outer", "shore_top_right"]);
+setRow(10, 11, ["shore_top_inner", "shore_top_inner", "shore_top_inner", "shore_top_left",
+  "water_1", "water_2", "shore_top_right", "shore_top_inner"]);
+setRow(11, 10, ["shore_top_left", "shore_top_outer", "shore_top_outer", "shore_top_outer", "water_2",
+  "water_1", "water_2", "shore_top_outer", "shore_left_inner"]);
+
+
 fillRow(12, 10, 18, "water");
 fillRow(13, 10, 17, "water");
 fillRow(14, 10, 16, "water");
@@ -328,37 +335,61 @@ const TILE_IMG_HEIGHT = TILE_HALF_HEIGHT * 8;
 function drawTileImg(canvasCoords: CanvasCoords, index: number) {
   const dx = canvasCoords.x - TILE_HALF_WIDTH;
   const dy = canvasCoords.y - 3 * TILE_HALF_HEIGHT;
+
   ctx.drawImage(
-    tiles,
-    (index % 16) * TILE_IMG_WIDTH,
-    Math.floor(index / 16) * TILE_IMG_HEIGHT,
-    TILE_IMG_WIDTH,
-    TILE_IMG_HEIGHT,
+    pixelTiles,
+    (index % 16) * 32,
+    Math.floor(index / 16) * 32,
+    32,
+    32,
     dx,
     dy,
     TILE_HALF_WIDTH * 2,
     TILE_HALF_HEIGHT * 4
   );
+
+  // ctx.drawImage(
+  //   tiles,
+  //   (index % 16) * TILE_IMG_WIDTH,
+  //   Math.floor(index / 16) * TILE_IMG_HEIGHT,
+  //   TILE_IMG_WIDTH,
+  //   TILE_IMG_HEIGHT,
+  //   dx,
+  //   dy,
+  //   TILE_HALF_WIDTH * 2,
+  //   TILE_HALF_HEIGHT * 4
+  // );
 }
 
 const TILE_IMG_INDICES: { [key: string]: number } = {
-  grass: 0,
-  road_v: 1,
-  road_h: 2,
-  road_turn_left: 3,
-  road_turn_right: 4,
-  road_turn_top: 5,
-  road_turn_bottom: 6,
-  road_end_tl: 7,
-  road_end_tr: 8,
-  road_end_bl: 9,
-  road_end_br: 10,
-  road_tee_tl: 11,
-  road_tee_tr: 12,
-  road_tee_bl: 13,
-  road_tee_br: 14,
-  road_cross: 15,
-  water: 16
+  grass_1: 0,
+  grass_2: 1,
+  grass_3: 2,
+
+  // road_h: 2,
+  // road_turn_left: 3,
+  // road_turn_right: 4,
+  // road_turn_top: 5,
+  // road_turn_bottom: 6,
+  // road_end_tl: 7,
+  // road_end_tr: 8,
+  // road_end_bl: 9,
+  // road_end_br: 10,
+  // road_tee_tl: 11,
+  // road_tee_tr: 12,
+  // road_tee_bl: 13,
+  // road_tee_br: 14,
+  // road_cross: 15,
+  water_1: 16,
+  water_2: 17,
+  shore_top_left: 32,
+  shore_top_inner: 33,
+  shore_top_right: 34,
+  shore_top_outer: 35,
+  shore_left_inner: 36,
+
+  path_straight_top_left: 48,
+  path_straight_top_right: 49,
 };
 
 function drawTile(target: Coords) {
