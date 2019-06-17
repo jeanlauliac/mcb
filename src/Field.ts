@@ -8,11 +8,11 @@ const iter = new Coords();
 const rng = new PRNG(0);
 
 export class Entity {
-  type: string = 'invalid';
+  type: string = "invalid";
   coords: Coords = new Coords();
-};
+}
 
-export type EntitySlot = {inUse: boolean, entity: Entity};
+export type EntitySlot = { inUse: boolean; entity: Entity };
 
 export default class Field {
   _size = new ScreenCoords();
@@ -22,17 +22,14 @@ export default class Field {
 
   constructor(size: ScreenCoords) {
     this._size.assign(size);
-    this._data = createArray<Tile>(
-      size.x * size.y,
-      () => ({
-        type: ["grass_1", "grass_2", "grass_3"][rng.nextInt(3)],
-        entityID: 0,
-      })
-    );
-    this._entities = createArray<EntitySlot>(
-      256,
-      () => ({inUse: false, entity: new Entity()}),
-    );
+    this._data = createArray<Tile>(size.x * size.y, () => ({
+      type: ["grass_1", "grass_2", "grass_3"][rng.nextInt(3)],
+      entityID: 0
+    }));
+    this._entities = createArray<EntitySlot>(256, () => ({
+      inUse: false,
+      entity: new Entity()
+    }));
     this._nextEntityID = 0;
   }
 
@@ -50,7 +47,7 @@ export default class Field {
 
   getEntity(id: number): Entity {
     const slot = this._entities[id];
-    if (!slot.inUse) throw new Error('non existent entity ID');
+    if (!slot.inUse) throw new Error("non existent entity ID");
     return slot.entity;
   }
 
@@ -66,7 +63,7 @@ export default class Field {
       --maxSearch;
     }
     if (maxSearch === 0) {
-      throw new Error('no more entity slots');
+      throw new Error("no more entity slots");
     }
     this._entities[this._nextEntityID].inUse = true;
     return this._nextEntityID;
@@ -84,8 +81,9 @@ export default class Field {
   fillRow(row: number, fromCol: number, toCol: number, type: string) {
     iter.row = row;
     for (iter.col = fromCol; iter.col <= toCol; ++iter.col) {
-      this._data[this.getTileIndex(iter)].type =
-        ["water_1", "water_2"][rng.nextInt(2)];
+      this._data[this.getTileIndex(iter)].type = ["water_1", "water_2"][
+        rng.nextInt(2)
+      ];
     }
   }
 

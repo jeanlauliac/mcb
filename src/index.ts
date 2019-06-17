@@ -15,7 +15,7 @@ import RoadBuilder, {
 import ScreenCoords from "./ScreenCoords";
 import WorldCoords from "./WorldCoords";
 import Bulldozer from "./Bulldozer";
-import Field, {Entity} from "./Field";
+import Field, { Entity } from "./Field";
 
 const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
@@ -80,11 +80,27 @@ const setRow = field.setRow.bind(field);
 
 setRow(8, 15, ["shore_top_inner", "shore_top_inner"]);
 setRow(9, 14, ["shore_top_left", "shore_top_outer", "shore_top_right"]);
-setRow(10, 11, ["shore_top_inner", "shore_top_inner", "shore_top_inner", "shore_top_left",
-  "water_1", "water_2", "shore_top_right", "shore_top_inner"]);
-setRow(11, 10, ["shore_top_left", "shore_top_outer", "shore_top_outer", "shore_top_outer", "water_2",
-  "water_1", "water_2", "shore_top_outer", "shore_left_inner"]);
-
+setRow(10, 11, [
+  "shore_top_inner",
+  "shore_top_inner",
+  "shore_top_inner",
+  "shore_top_left",
+  "water_1",
+  "water_2",
+  "shore_top_right",
+  "shore_top_inner"
+]);
+setRow(11, 10, [
+  "shore_top_left",
+  "shore_top_outer",
+  "shore_top_outer",
+  "shore_top_outer",
+  "water_2",
+  "water_1",
+  "water_2",
+  "shore_top_outer",
+  "shore_left_inner"
+]);
 
 fillRow(12, 10, 18, "water");
 fillRow(13, 10, 17, "water");
@@ -389,7 +405,7 @@ const TILE_IMG_INDICES: { [key: string]: number } = {
   shore_left_inner: 36,
 
   path_straight_top_left: 48,
-  path_straight_top_right: 49,
+  path_straight_top_right: 49
 };
 
 function drawTile(target: Coords) {

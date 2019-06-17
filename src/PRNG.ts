@@ -1,4 +1,3 @@
-
 export default class PRNG {
   _seed: number;
 
@@ -11,10 +10,10 @@ export default class PRNG {
    * Returns a pseudo-random value between 1 and 2^32 - 2.
    */
   next(): number {
-    return this._seed = this._seed * 16807 % 2147483647;
-  };
+    return (this._seed = (this._seed * 16807) % 2147483647);
+  }
 
   nextInt(upperLimit: number): number {
-    return Math.floor(this.next() / 2147483646 * upperLimit);
+    return Math.floor((this.next() / 2147483646) * upperLimit);
   }
 }
