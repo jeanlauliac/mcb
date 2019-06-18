@@ -123,10 +123,10 @@ export default class RoadBuilder {
 }
 
 export const ROAD_TYPE_TABLE: { [key: number]: string } = {
-  0b0011: "road_turn_left",
-  0b1100: "road_turn_right",
-  0b1001: "road_turn_top",
-  0b0110: "road_turn_bottom",
+  0b0011: "path_turn_left",
+  0b1100: "path_turn_right",
+  0b1001: "path_turn_top",
+  0b0110: "path_turn_bottom",
   0b0101: "path_straight_top_left",
   0b1010: "path_straight_top_right",
   0b0001: "road_end_tl",

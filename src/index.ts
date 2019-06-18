@@ -382,8 +382,6 @@ const TILE_IMG_INDICES: { [key: string]: number } = {
   grass_2: 1,
   grass_3: 2,
 
-  // road_h: 2,
-  // road_turn_left: 3,
   // road_turn_right: 4,
   // road_turn_top: 5,
   // road_turn_bottom: 6,
@@ -405,7 +403,11 @@ const TILE_IMG_INDICES: { [key: string]: number } = {
   shore_left_inner: 36,
 
   path_straight_top_left: 48,
-  path_straight_top_right: 49
+  path_straight_top_right: 49,
+  path_turn_left: 50,
+  path_turn_right: 51,
+  path_turn_top: 52,
+  path_turn_bottom: 53,
 };
 
 function drawTile(target: Coords) {
