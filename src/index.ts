@@ -99,10 +99,21 @@ setRow(11, 10, [
   "water_1",
   "water_2",
   "shore_top_outer",
-  "shore_left_inner"
+  "shore_right_inner"
 ]);
 
-fillRow(12, 10, 18, "water");
+setRow(12, 10, [
+  "shore_top_left",
+  "water_1",
+  "water_2",
+  "water_1",
+  "water_2",
+  "water_1",
+  "water_2",
+  "water_1",
+  "shore_bottom_right"
+]);
+
 fillRow(13, 10, 17, "water");
 fillRow(14, 10, 16, "water");
 fillRow(15, 9, 15, "water");
@@ -382,10 +393,6 @@ const TILE_IMG_INDICES: { [key: string]: number } = {
   grass_2: 1,
   grass_3: 2,
 
-  // road_turn_right: 4,
-  // road_turn_top: 5,
-  // road_turn_bottom: 6,
-  // road_end_tl: 7,
   // road_end_tr: 8,
   // road_end_bl: 9,
   // road_end_br: 10,
@@ -400,14 +407,18 @@ const TILE_IMG_INDICES: { [key: string]: number } = {
   shore_top_inner: 33,
   shore_top_right: 34,
   shore_top_outer: 35,
-  shore_left_inner: 36,
+  shore_right_inner: 36,
+  shore_bottom_right: 37,
 
   path_straight_top_left: 48,
   path_straight_top_right: 49,
+
   path_turn_left: 50,
   path_turn_right: 51,
   path_turn_top: 52,
   path_turn_bottom: 53,
+
+  path_end_top_left: 54,
 };
 
 function drawTile(target: Coords) {
