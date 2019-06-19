@@ -358,6 +358,7 @@ function drawMiniMap() {
 
 const TILE_IMG_WIDTH = TILE_HALF_WIDTH * 4;
 const TILE_IMG_HEIGHT = TILE_HALF_HEIGHT * 8;
+const TILES_PER_ROW = 32;
 
 function drawTileImg(canvasCoords: CanvasCoords, index: number) {
   const dx = canvasCoords.x - TILE_HALF_WIDTH;
@@ -365,8 +366,8 @@ function drawTileImg(canvasCoords: CanvasCoords, index: number) {
 
   ctx.drawImage(
     pixelTiles,
-    (index % 16) * 32,
-    Math.floor(index / 16) * 32,
+    (index % TILES_PER_ROW) * 32,
+    Math.floor(index / TILES_PER_ROW) * 32,
     32,
     32,
     dx,
@@ -388,38 +389,50 @@ function drawTileImg(canvasCoords: CanvasCoords, index: number) {
   // );
 }
 
-const TILE_IMG_INDICES: { [key: string]: number } = {
-  grass_1: 0,
-  grass_2: 1,
-  grass_3: 2,
+const TILE_IMG_INDICES: { [key: string]: number } = (() => {
+  const rows = [
+    ['grass_1', 'grass_2', 'grass_3'],
 
-  // road_end_tr: 8,
-  // road_end_bl: 9,
-  // road_end_br: 10,
-  // road_tee_tl: 11,
-  // road_tee_tr: 12,
-  // road_tee_bl: 13,
-  // road_tee_br: 14,
-  // road_cross: 15,
-  water_1: 16,
-  water_2: 17,
-  shore_top_left: 32,
-  shore_top_inner: 33,
-  shore_top_right: 34,
-  shore_top_outer: 35,
-  shore_right_inner: 36,
-  shore_bottom_right: 37,
+    // road_end_tr: 8,
+    // road_end_bl: 9,
+    // road_end_br: 10,
+    // road_tee_tl: 11,
+    // road_tee_tr: 12,
+    // road_tee_bl: 13,
+    // road_tee_br: 14,
+    // road_cross: 15,
 
-  path_straight_top_left: 48,
-  path_straight_top_right: 49,
+    ['water_1', 'water_2'], ['shore_top_left',
+    'shore_top_inner',
+    'shore_top_right',
+    'shore_top_outer',
+    'shore_right_inner',
+    'shore_bottom_right',
+],
+[
+    'path_straight_top_left',
+    'path_straight_top_right',
 
-  path_turn_left: 50,
-  path_turn_right: 51,
-  path_turn_top: 52,
-  path_turn_bottom: 53,
+    'path_turn_left',
+    'path_turn_right',
+    'path_turn_top',
+    'path_turn_bottom',
 
-  path_end_top_left: 54,
-};
+    'path_end_top_left',
+    'path_end_top_right',
+    'path_end_bottom_right',
+    'path_end_bottom_left',
+    'path_patch',
+    ]];
+    const tileMap: { [key: string]: number } = {};
+    for (let row = 0; row < rows.length; ++row) {
+      const columns = rows[row];
+      for (let col = 0; col < columns.length; ++col) {
+        tileMap[columns[col]] = row * TILES_PER_ROW + col;
+      }
+    }
+    return tileMap;
+})();
 
 function drawTile(target: Coords) {
   getCanvasCoords(canvasCoords, target);
