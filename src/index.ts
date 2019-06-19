@@ -157,6 +157,13 @@ function update(coef: number) {
   for (; !mouseEvents.isEmpty(); mouseEvents.shift()) {
     const ev = mouseEvents.first;
     fieldCoords.assign(ev.coords).sum(camera);
+    if (ev.wasSecondaryPressed()) {
+      cursorMode = "move";
+      continue;
+    }
+    if (ev.wasSecondaryReleased()) {
+      continue;
+    }
     switch (cursorMode) {
       case "move":
         handleCameraMove(ev);
@@ -546,9 +553,11 @@ canvas.addEventListener(
   handleMouseEvent.bind(null, MouseEventType.Up)
 );
 
+document.oncontextmenu = () => false;
+
 function handleCameraMove(ev: LocalMouseEvent) {
   if (!camMove.moving) {
-    if (ev.isPrimaryDown()) {
+    if (ev.wasPrimaryPressed()) {
       camMove.x = ev.coords.x;
       camMove.y = ev.coords.y;
       camMove.camX = camera.x;
@@ -558,7 +567,7 @@ function handleCameraMove(ev: LocalMouseEvent) {
     }
     return;
   }
-  if (ev.isPrimaryUp()) {
+  if (ev.wasPrimaryReleased()) {
     camMove.moving = false;
     return;
   }

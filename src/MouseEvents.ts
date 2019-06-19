@@ -7,7 +7,8 @@ export enum MouseEventType {
 }
 
 export enum MouseEventButton {
-  Primary = 0
+  Primary = 0,
+  Secondary = 2,
 }
 
 export class LocalMouseEvent {
@@ -16,17 +17,31 @@ export class LocalMouseEvent {
   button: MouseEventButton;
   type: MouseEventType;
 
-  isPrimaryDown() {
+  wasPrimaryPressed() {
     return (
       this.type === MouseEventType.Down &&
       this.button === MouseEventButton.Primary
     );
   }
 
-  isPrimaryUp() {
+  wasPrimaryReleased() {
     return (
       this.type === MouseEventType.Up &&
       this.button === MouseEventButton.Primary
+    );
+  }
+
+  wasSecondaryPressed() {
+    return (
+      this.type === MouseEventType.Down &&
+      this.button === MouseEventButton.Secondary
+    );
+  }
+
+  wasSecondaryReleased() {
+    return (
+      this.type === MouseEventType.Up &&
+      this.button === MouseEventButton.Secondary
     );
   }
 }

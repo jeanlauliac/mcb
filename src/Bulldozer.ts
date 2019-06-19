@@ -2,7 +2,7 @@ import Coords from "./Coords";
 import WorldCoords from "./WorldCoords";
 import ScreenCoords from "./ScreenCoords";
 import pickTile from "./pickTile";
-import { MouseEventType } from "./MouseEvents";
+import { MouseEventType,MouseEventButton } from "./MouseEvents";
 import Field from "./Field";
 import { ROAD_TYPE_REVERSE_TABLE, ROAD_TYPE_TABLE } from "./RoadBuilder";
 
