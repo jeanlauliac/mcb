@@ -391,7 +391,7 @@ function drawTileImg(canvasCoords: CanvasCoords, index: number) {
 
 const TILE_IMG_INDICES: { [key: string]: number } = (() => {
   const rows = [
-    ['grass_1', 'grass_2', 'grass_3'],
+    ["grass_1", "grass_2", "grass_3"],
 
     // road_end_tr: 8,
     // road_end_bl: 9,
@@ -402,36 +402,39 @@ const TILE_IMG_INDICES: { [key: string]: number } = (() => {
     // road_tee_br: 14,
     // road_cross: 15,
 
-    ['water_1', 'water_2'], ['shore_top_left',
-    'shore_top_inner',
-    'shore_top_right',
-    'shore_top_outer',
-    'shore_right_inner',
-    'shore_bottom_right',
-],
-[
-    'path_straight_top_left',
-    'path_straight_top_right',
+    ["water_1", "water_2"],
+    [
+      "shore_top_left",
+      "shore_top_inner",
+      "shore_top_right",
+      "shore_top_outer",
+      "shore_right_inner",
+      "shore_bottom_right"
+    ],
+    [
+      "path_straight_top_left",
+      "path_straight_top_right",
 
-    'path_turn_left',
-    'path_turn_right',
-    'path_turn_top',
-    'path_turn_bottom',
+      "path_turn_left",
+      "path_turn_right",
+      "path_turn_top",
+      "path_turn_bottom",
 
-    'path_end_top_left',
-    'path_end_top_right',
-    'path_end_bottom_right',
-    'path_end_bottom_left',
-    'path_patch',
-    ]];
-    const tileMap: { [key: string]: number } = {};
-    for (let row = 0; row < rows.length; ++row) {
-      const columns = rows[row];
-      for (let col = 0; col < columns.length; ++col) {
-        tileMap[columns[col]] = row * TILES_PER_ROW + col;
-      }
+      "path_end_top_left",
+      "path_end_top_right",
+      "path_end_bottom_right",
+      "path_end_bottom_left",
+      "path_patch"
+    ]
+  ];
+  const tileMap: { [key: string]: number } = {};
+  for (let row = 0; row < rows.length; ++row) {
+    const columns = rows[row];
+    for (let col = 0; col < columns.length; ++col) {
+      tileMap[columns[col]] = row * TILES_PER_ROW + col;
     }
-    return tileMap;
+  }
+  return tileMap;
 })();
 
 function drawTile(target: Coords) {

@@ -138,7 +138,7 @@ export const ROAD_TYPE_TABLE: { [key: number]: string } = {
   0b0111: "road_tee_bl",
   0b1110: "road_tee_br",
   0b1111: "road_cross",
-  0b0000: "path_patch",
+  0b0000: "path_patch"
 };
 
 export const ROAD_TYPE_REVERSE_TABLE = (() => {
