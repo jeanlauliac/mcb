@@ -78,9 +78,9 @@ const field = new Field(new ScreenCoords(60, 100));
 const fillRow = field.fillRow.bind(field);
 const setRow = field.setRow.bind(field);
 
-setRow(8, 15, ["shore_top_inner", "shore_top_inner"]);
-setRow(9, 14, ["shore_top_left", "shore_top_outer", "shore_top_right"]);
-setRow(10, 11, [
+setRow(18, 15, ["shore_top_inner", "shore_top_inner"]);
+setRow(19, 14, ["shore_top_left", "shore_top_outer", "shore_top_right"]);
+setRow(20, 11, [
   "shore_top_inner",
   "shore_top_inner",
   "shore_top_inner",
@@ -90,7 +90,7 @@ setRow(10, 11, [
   "shore_top_right",
   "shore_top_inner"
 ]);
-setRow(11, 10, [
+setRow(21, 10, [
   "shore_top_left",
   "shore_top_outer",
   "shore_top_outer",
@@ -102,10 +102,31 @@ setRow(11, 10, [
   "shore_right_inner"
 ]);
 
-setRow(12, 10, [
-  "shore_top_left",
+setRow(22, 10, [
+  "shore_left_inner",
   "water_1",
   "water_2",
+  "water_1",
+  "water_2",
+  "water_1",
+  "water_2",
+  "shore_bottom_outer",
+  "shore_bottom_right"
+]);
+
+setRow(23, 10, [
+  "shore_left_outer",
+  "water_2",
+  "water_2",
+  "water_1",
+  "water_2",
+  "water_1",
+  "shore_bottom_right",
+  "shore_bottom_inner",
+]);
+
+setRow(24, 10, [
+  "shore_top_left",
   "water_1",
   "water_2",
   "water_1",
@@ -114,20 +135,7 @@ setRow(12, 10, [
   "shore_bottom_right"
 ]);
 
-fillRow(13, 10, 17, "water");
-
-
-setRow(14, 10, [
-  "shore_top_left",
-  "water_1",
-  "water_2",
-  "water_1",
-  "water_2",
-  "water_1",
-  "shore_bottom_right"
-]);
-
-setRow(15, 9, [
+setRow(25, 9, [
   "shore_top_left",
   "water_1",
   "water_2",
@@ -138,8 +146,8 @@ setRow(15, 9, [
 ]);
 
 
-setRow(16, 9, [
-  "water_1",
+setRow(26, 9, [
+  "shore_left_inner",
   "water_1",
   "water_2",
   "water_1",
@@ -148,8 +156,8 @@ setRow(16, 9, [
   "shore_right_outer"
 ]);
 
-setRow(17, 9, [
-  "water_1",
+setRow(27, 9, [
+  "shore_bottom_left",
   "water_1",
   "water_2",
   "water_1",
@@ -158,38 +166,46 @@ setRow(17, 9, [
   "shore_top_right"
 ]);
 
-// fillRow(17, 9, 15, "water");
 
+setRow(28, 10, [
+  "shore_bottom_left",
+  "water_1",
+  "water_2",
+  "water_1",
+  "water_1",
+  "water_2",
+  "shore_right_inner"
+]);
 
-fillRow(18, 9, 16, "water");
-fillRow(19, 10, 16, "water");
-fillRow(20, 10, 15, "water");
-fillRow(21, 10, 13, "water");
-fillRow(22, 12, 12, "water");
+setRow(29, 10, [
+  "shore_left_outer",
+  "water_1",
+  "water_2",
+  "water_1",
+  "shore_bottom_outer",
+  "shore_bottom_right"
+]);
 
-fillRow(21, 21, 22, "water");
-fillRow(22, 21, 23, "water");
-fillRow(23, 20, 23, "water");
-fillRow(24, 19, 24, "water");
-fillRow(25, 19, 24, "water");
-fillRow(26, 19, 25, "water");
-fillRow(27, 19, 25, "water");
-fillRow(28, 19, 25, "water");
-fillRow(29, 19, 25, "water");
+setRow(30, 10, [
+  "shore_left_inner",
+  "shore_bottom_outer",
+  "water_2",
+  "shore_bottom_outer",
+  "shore_bottom_right",
+  "shore_bottom_inner"
+]);
 
-fillRow(26, 4, 7, "water");
-fillRow(27, 4, 7, "water");
-fillRow(28, 5, 8, "water");
-fillRow(29, 5, 10, "water");
-fillRow(30, 8, 25, "water");
-fillRow(31, 8, 24, "water");
-fillRow(32, 9, 24, "water");
-fillRow(33, 9, 24, "water");
-fillRow(33, 10, 24, "water");
-fillRow(34, 10, 24, "water");
-fillRow(35, 15, 24, "water");
-fillRow(36, 15, 24, "water");
-fillRow(37, 15, 24, "water");
+setRow(31, 10, [
+  "shore_bottom_inner",
+  "shore_bottom_left",
+  "shore_bottom_right",
+  "shore_bottom_inner",
+]);
+
+setRow(32, 12, [
+  "shore_bottom_inner",
+]);
+
 
 const roadBuilder = new RoadBuilder(field);
 const bulldozer = new Bulldozer(field);
@@ -460,7 +476,11 @@ const TILE_IMG_INDICES: { [key: string]: number } = (() => {
       "shore_right_inner",
       "shore_bottom_right",
       "shore_right_outer",
-
+      "shore_bottom_inner",
+      "shore_bottom_left",
+      "shore_bottom_outer",
+      "shore_left_inner",
+      "shore_left_outer"
     ],
     [
       "path_straight_top_left",
