@@ -431,7 +431,14 @@ const TILE_IMG_INDICES: { [key: string]: number } = (() => {
       "path_end_top_right",
       "path_end_bottom_right",
       "path_end_bottom_left",
-      "path_patch"
+      "path_patch",
+
+      "path_tee_top_left",
+      "path_tee_top_right",
+      "path_tee_bottom_left",
+      "path_tee_bottom_right",
+
+      "path_cross",
     ]
   ];
   const tileMap: { [key: string]: number } = {};

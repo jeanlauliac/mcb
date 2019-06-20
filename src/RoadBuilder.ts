@@ -133,11 +133,11 @@ export const ROAD_TYPE_TABLE: { [key: number]: string } = {
   0b1000: "path_end_top_right",
   0b0010: "path_end_bottom_left",
   0b0100: "path_end_bottom_right",
-  0b1011: "road_tee_tl",
-  0b1101: "road_tee_tr",
-  0b0111: "road_tee_bl",
-  0b1110: "road_tee_br",
-  0b1111: "road_cross",
+  0b1011: "path_tee_top_left",
+  0b1101: "path_tee_top_right",
+  0b0111: "path_tee_bottom_left",
+  0b1110: "path_tee_bottom_right",
+  0b1111: "path_cross",
   0b0000: "path_patch"
 };
 
