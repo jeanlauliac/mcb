@@ -115,10 +115,52 @@ setRow(12, 10, [
 ]);
 
 fillRow(13, 10, 17, "water");
-fillRow(14, 10, 16, "water");
-fillRow(15, 9, 15, "water");
-fillRow(16, 9, 15, "water");
-fillRow(17, 9, 15, "water");
+
+
+setRow(14, 10, [
+  "shore_top_left",
+  "water_1",
+  "water_2",
+  "water_1",
+  "water_2",
+  "water_1",
+  "shore_bottom_right"
+]);
+
+setRow(15, 9, [
+  "shore_top_left",
+  "water_1",
+  "water_2",
+  "water_1",
+  "water_2",
+  "water_1",
+  "shore_bottom_right"
+]);
+
+
+setRow(16, 9, [
+  "water_1",
+  "water_1",
+  "water_2",
+  "water_1",
+  "water_1",
+  "water_2",
+  "shore_right_outer"
+]);
+
+setRow(17, 9, [
+  "water_1",
+  "water_1",
+  "water_2",
+  "water_1",
+  "water_1",
+  "water_2",
+  "shore_top_right"
+]);
+
+// fillRow(17, 9, 15, "water");
+
+
 fillRow(18, 9, 16, "water");
 fillRow(19, 10, 16, "water");
 fillRow(20, 10, 15, "water");
@@ -416,7 +458,9 @@ const TILE_IMG_INDICES: { [key: string]: number } = (() => {
       "shore_top_right",
       "shore_top_outer",
       "shore_right_inner",
-      "shore_bottom_right"
+      "shore_bottom_right",
+      "shore_right_outer",
+
     ],
     [
       "path_straight_top_left",
