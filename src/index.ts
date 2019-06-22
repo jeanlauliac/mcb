@@ -20,12 +20,27 @@ import Field, { Entity } from "./Field";
 const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
 
+const TARGET_RATIO = 16/9;
+
 const dpr = window.devicePixelRatio || 1;
 const windowSize = new ScreenCoords(window.innerWidth, window.innerHeight);
-canvas.width = windowSize.x * dpr;
-canvas.height = windowSize.y * dpr;
-canvas.style.width = windowSize.x + "px";
-canvas.style.height = windowSize.y + "px";
+
+const windowRatio = windowSize.x / windowSize.y;
+const targetSize = new ScreenCoords();
+if (windowRatio > TARGET_RATIO) {
+  targetSize.x = Math.floor(windowSize.y * TARGET_RATIO);
+  targetSize.y = windowSize.y;
+} else {
+  targetSize.x = windowSize.x;
+  targetSize.y = Math.floor(windowSize.x / TARGET_RATIO);
+}
+
+canvas.width = targetSize.x * dpr;
+canvas.height = targetSize.y * dpr;
+canvas.style.width = targetSize.x + "px";
+canvas.style.height = targetSize.y + "px";
+canvas.style.marginLeft = ((windowSize.x - targetSize.x) / 2) + "px";
+canvas.style.marginTop = ((windowSize.y - targetSize.y) / 2) + "px";
 
 const ctx = canvas.getContext("2d");
 ctx.scale(dpr, dpr);
@@ -583,7 +598,7 @@ function handleMouseEvent(type: MouseEventType, ev: MouseEvent) {
     mouseEvents.shift();
   }
   const lastEv = mouseEvents.push();
-  lastEv.coords.set(ev.clientX, ev.clientY);
+  lastEv.coords.set(ev.offsetX, ev.offsetY);
   lastEv.buttons = ev.buttons;
   lastEv.button = ev.button;
   lastEv.type = type;
