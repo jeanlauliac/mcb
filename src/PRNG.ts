@@ -1,3 +1,7 @@
+/**
+ * We want to have the same pseudo-random numbers every time so we roll our own
+ * generator rather than using `Math.random()`.
+ */
 export default class PRNG {
   _seed: number;
 

@@ -440,33 +440,11 @@ function drawTileImg(canvasCoords: CanvasCoords, index: number) {
     TILE_HALF_WIDTH * 2,
     TILE_HALF_HEIGHT * 4
   );
-
-  // ctx.drawImage(
-  //   tiles,
-  //   (index % 16) * TILE_IMG_WIDTH,
-  //   Math.floor(index / 16) * TILE_IMG_HEIGHT,
-  //   TILE_IMG_WIDTH,
-  //   TILE_IMG_HEIGHT,
-  //   dx,
-  //   dy,
-  //   TILE_HALF_WIDTH * 2,
-  //   TILE_HALF_HEIGHT * 4
-  // );
 }
 
 const TILE_IMG_INDICES: { [key: string]: number } = (() => {
   const rows = [
     ["grass_1", "grass_2", "grass_3"],
-
-    // road_end_tr: 8,
-    // road_end_bl: 9,
-    // road_end_br: 10,
-    // road_tee_tl: 11,
-    // road_tee_tr: 12,
-    // road_tee_bl: 13,
-    // road_tee_br: 14,
-    // road_cross: 15,
-
     ["water_1", "water_2"],
     [
       "shore_top_left",
