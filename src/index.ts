@@ -26,21 +26,21 @@ const dpr = window.devicePixelRatio || 1;
 const windowSize = new ScreenCoords(window.innerWidth, window.innerHeight);
 
 const windowRatio = windowSize.x / windowSize.y;
-const targetSize = new ScreenCoords();
+const canvasSize = new ScreenCoords();
 if (windowRatio > TARGET_RATIO) {
-  targetSize.x = Math.floor(windowSize.y * TARGET_RATIO);
-  targetSize.y = windowSize.y;
+  canvasSize.x = Math.floor(windowSize.y * TARGET_RATIO);
+  canvasSize.y = windowSize.y;
 } else {
-  targetSize.x = windowSize.x;
-  targetSize.y = Math.floor(windowSize.x / TARGET_RATIO);
+  canvasSize.x = windowSize.x;
+  canvasSize.y = Math.floor(windowSize.x / TARGET_RATIO);
 }
 
-canvas.width = targetSize.x * dpr;
-canvas.height = targetSize.y * dpr;
-canvas.style.width = targetSize.x + "px";
-canvas.style.height = targetSize.y + "px";
-canvas.style.marginLeft = ((windowSize.x - targetSize.x) / 2) + "px";
-canvas.style.marginTop = ((windowSize.y - targetSize.y) / 2) + "px";
+canvas.width = canvasSize.x * dpr;
+canvas.height = canvasSize.y * dpr;
+canvas.style.width = canvasSize.x + "px";
+canvas.style.height = canvasSize.y + "px";
+canvas.style.marginLeft = ((windowSize.x - canvasSize.x) / 2) + "px";
+canvas.style.marginTop = ((windowSize.y - canvasSize.y) / 2) + "px";
 
 const ctx = canvas.getContext("2d");
 ctx.scale(dpr, dpr);
@@ -350,7 +350,7 @@ function draw() {
   ctx.lineWidth = 1;
 
   pickTile(topLeftCoords, camera);
-  fieldCoords.assign(camera).sum(windowSize);
+  fieldCoords.assign(camera).sum(canvasSize);
   pickTile(bottomRightCoords, fieldCoords);
   const maxRow = Math.min(bottomRightCoords.row + 2, field.size.y);
   const maxCol = Math.min(bottomRightCoords.col + 2, field.size.x);
@@ -420,7 +420,7 @@ function drawMiniMap() {
 
   const ratio = canvasCoords.x / canvasCoords.y;
   const height = Math.floor(80 / ratio);
-  const left = windowSize.x - 100;
+  const left = canvasSize.x - 100;
   ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
   ctx.fillRect(left, 20, 80, height);
 
@@ -431,8 +431,8 @@ function drawMiniMap() {
   ctx.strokeRect(
     left + percX * 80,
     20 + percY * height,
-    (windowSize.x / canvasCoords.x) * 80,
-    (windowSize.y / canvasCoords.y) * height
+    (canvasSize.x / canvasCoords.x) * 80,
+    (canvasSize.y / canvasCoords.y) * height
   );
 }
 
@@ -649,11 +649,11 @@ function handleCameraMove(ev: LocalMouseEvent) {
 
 function restrictCamera() {
   if (camera.x < 0) camera.x = 0;
-  const camMaxX = (field.size.x - 1) * TILE_HALF_WIDTH * 2 - windowSize.x;
+  const camMaxX = (field.size.x - 1) * TILE_HALF_WIDTH * 2 - canvasSize.x;
   if (camera.x > camMaxX) camera.x = camMaxX;
 
   if (camera.y < 0) camera.y = 0;
-  const camMaxY = (field.size.y - 1) * TILE_HALF_HEIGHT - windowSize.y;
+  const camMaxY = (field.size.y - 1) * TILE_HALF_HEIGHT - canvasSize.y;
   if (camera.y > camMaxY) camera.y = camMaxY;
 }
 
