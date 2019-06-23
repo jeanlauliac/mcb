@@ -20,7 +20,7 @@ const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
 
 const TARGET_RATIO = 16/9;
-const TILES_PER_HEIGHT = 16;
+const TILES_PER_HEIGHT = 18;
 
 const dpr = window.devicePixelRatio || 1;
 const windowSize = new ScreenCoords(window.innerWidth, window.innerHeight);
