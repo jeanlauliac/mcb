@@ -1,5 +1,4 @@
 import pickTile from "./pickTile";
-import { TILE_HALF_WIDTH, TILE_HALF_HEIGHT } from "./constants";
 import findShortestPath, { Path } from "./findShortestPath";
 import findNeighbours, { Neighbours } from "./findNeighbours";
 import Coords from "./Coords";
@@ -21,6 +20,7 @@ const canvas = document.createElement("canvas");
 document.body.appendChild(canvas);
 
 const TARGET_RATIO = 16/9;
+const TILES_PER_HEIGHT = 16;
 
 const dpr = window.devicePixelRatio || 1;
 const windowSize = new ScreenCoords(window.innerWidth, window.innerHeight);
@@ -41,6 +41,12 @@ canvas.style.width = canvasSize.x + "px";
 canvas.style.height = canvasSize.y + "px";
 canvas.style.marginLeft = ((windowSize.x - canvasSize.x) / 2) + "px";
 canvas.style.marginTop = ((windowSize.y - canvasSize.y) / 2) + "px";
+
+const TILE_HEIGHT = canvasSize.y / TILES_PER_HEIGHT;
+
+const tileHalfSize = new ScreenCoords();
+tileHalfSize.x = Math.floor((TILE_HEIGHT * Math.sqrt(3)) / 2);
+tileHalfSize.y = Math.floor(TILE_HEIGHT / 2);
 
 const ctx = canvas.getContext("2d");
 ctx.scale(dpr, dpr);
@@ -222,8 +228,8 @@ setRow(32, 12, [
 ]);
 
 
-const roadBuilder = new RoadBuilder(field);
-const bulldozer = new Bulldozer(field);
+const roadBuilder = new RoadBuilder(field, tileHalfSize);
+const bulldozer = new Bulldozer(field, tileHalfSize);
 const camDelta = new ScreenCoords();
 
 function update(coef: number) {
@@ -290,7 +296,7 @@ const fieldCoords = new ScreenCoords();
 
 function handleFarmMouseEvent(type: MouseEventType, fieldCoords: ScreenCoords) {
   if (type === MouseEventType.Move) {
-    pickTile(pickedTile, fieldCoords);
+    pickTile(tileHalfSize, pickedTile, fieldCoords);
     if (farmCoords.equals(pickedTile)) return;
     farmCoords.assign(pickedTile);
 
@@ -349,9 +355,9 @@ function draw() {
   ctx.strokeStyle = "#a0a0a0";
   ctx.lineWidth = 1;
 
-  pickTile(topLeftCoords, camera);
+  pickTile(tileHalfSize, topLeftCoords, camera);
   fieldCoords.assign(camera).sum(canvasSize);
-  pickTile(bottomRightCoords, fieldCoords);
+  pickTile(tileHalfSize, bottomRightCoords, fieldCoords);
   const maxRow = Math.min(bottomRightCoords.row + 2, field.size.y);
   const maxCol = Math.min(bottomRightCoords.col + 2, field.size.x);
 
@@ -436,13 +442,11 @@ function drawMiniMap() {
   );
 }
 
-const TILE_IMG_WIDTH = TILE_HALF_WIDTH * 4;
-const TILE_IMG_HEIGHT = TILE_HALF_HEIGHT * 8;
 const TILES_PER_ROW = 32;
 
 function drawTileImg(canvasCoords: CanvasCoords, index: number) {
-  const dx = canvasCoords.x - TILE_HALF_WIDTH;
-  const dy = canvasCoords.y - 3 * TILE_HALF_HEIGHT;
+  const dx = canvasCoords.x - tileHalfSize.x;
+  const dy = canvasCoords.y - 3 * tileHalfSize.y;
 
   ctx.drawImage(
     pixelTiles,
@@ -452,8 +456,8 @@ function drawTileImg(canvasCoords: CanvasCoords, index: number) {
     32,
     dx,
     dy,
-    TILE_HALF_WIDTH * 2,
-    TILE_HALF_HEIGHT * 4
+    tileHalfSize.x * 2,
+    tileHalfSize.y * 4
   );
 }
 
@@ -553,16 +557,16 @@ const ITEMS_IMG_POSITION: {
 
 function drawEntity(coords: ScreenCoords, entity: Entity) {
   const data = ITEMS_IMG_POSITION[entity.type];
-  const width = data.size.x * TILE_HALF_WIDTH;
-  const height = data.size.y * TILE_HALF_HEIGHT;
+  const width = data.size.x * tileHalfSize.x;
+  const height = data.size.y * tileHalfSize.y;
   ctx.drawImage(
     entities,
-    data.offset.x * TILE_HALF_WIDTH * 2,
-    data.offset.y * TILE_HALF_HEIGHT * 2,
+    data.offset.x * tileHalfSize.x * 2,
+    data.offset.y * tileHalfSize.y * 2,
     width * 2,
     height * 2,
-    coords.x - data.center.x * TILE_HALF_WIDTH,
-    coords.y - data.center.y * TILE_HALF_HEIGHT,
+    coords.x - data.center.x * tileHalfSize.x,
+    coords.y - data.center.y * tileHalfSize.y,
     width,
     height
   );
@@ -570,17 +574,17 @@ function drawEntity(coords: ScreenCoords, entity: Entity) {
 
 function getCanvasCoords(result: CanvasCoords, coords: Coords) {
   const { row, col } = coords;
-  result.x = col * TILE_HALF_WIDTH * 2 + (row % 2) * TILE_HALF_WIDTH - camera.x;
-  result.y = row * TILE_HALF_HEIGHT - camera.y;
+  result.x = col * tileHalfSize.x * 2 + (row % 2) * tileHalfSize.x - camera.x;
+  result.y = row * tileHalfSize.y - camera.y;
 }
 
 function buildTilePath(coords: CanvasCoords): void {
   const { x, y } = coords;
   ctx.beginPath();
-  ctx.moveTo(x, y - TILE_HALF_HEIGHT);
-  ctx.lineTo(x + TILE_HALF_WIDTH, y);
-  ctx.lineTo(x, y + TILE_HALF_HEIGHT);
-  ctx.lineTo(x - TILE_HALF_WIDTH, y);
+  ctx.moveTo(x, y - tileHalfSize.y);
+  ctx.lineTo(x + tileHalfSize.x, y);
+  ctx.lineTo(x, y + tileHalfSize.y);
+  ctx.lineTo(x - tileHalfSize.x, y);
   ctx.closePath();
 }
 
@@ -649,11 +653,11 @@ function handleCameraMove(ev: LocalMouseEvent) {
 
 function restrictCamera() {
   if (camera.x < 0) camera.x = 0;
-  const camMaxX = (field.size.x - 1) * TILE_HALF_WIDTH * 2 - canvasSize.x;
+  const camMaxX = (field.size.x - 1) * tileHalfSize.x * 2 - canvasSize.x;
   if (camera.x > camMaxX) camera.x = camMaxX;
 
   if (camera.y < 0) camera.y = 0;
-  const camMaxY = (field.size.y - 1) * TILE_HALF_HEIGHT - canvasSize.y;
+  const camMaxY = (field.size.y - 1) * tileHalfSize.y - canvasSize.y;
   if (camera.y > camMaxY) camera.y = camMaxY;
 }
 

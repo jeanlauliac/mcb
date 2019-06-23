@@ -30,9 +30,11 @@ export default class RoadBuilder {
     hashInteger
   );
   _field: Field;
+  _tileHalfSize: ScreenCoords;
 
-  constructor(field: Field) {
+  constructor(field: Field, tileHalfSize: ScreenCoords) {
     this._field = field;
+    this._tileHalfSize = tileHalfSize;
   }
 
   enable(fieldCoords: ScreenCoords) {
@@ -66,7 +68,7 @@ export default class RoadBuilder {
   }
 
   _handleMouseMove(fieldCoords: ScreenCoords) {
-    pickTile(pickedTile, fieldCoords);
+    pickTile(this._tileHalfSize, pickedTile, fieldCoords);
     if (!this._isBuilding) {
       this._currentCoords.assign(pickedTile);
       return;

@@ -16,9 +16,11 @@ export default class Bulldozer {
   _toCoords = new Coords();
   _square = { projFrom: new WorldCoords(), projTo: new WorldCoords() };
   _field: Field;
+  _tileHalfSize: ScreenCoords;
 
-  constructor(field: Field) {
+  constructor(field: Field, tileHalfSize: ScreenCoords) {
     this._field = field;
+    this._tileHalfSize = tileHalfSize;
   }
 
   enable(fieldCoords: ScreenCoords): void {
@@ -102,7 +104,7 @@ export default class Bulldozer {
   }
 
   _handleMouseMove(fieldCoords: ScreenCoords) {
-    pickTile(pickedTile, fieldCoords);
+    pickTile(this._tileHalfSize, pickedTile, fieldCoords);
     if (!this._isDeleting) {
       this._toCoords.assign(pickedTile);
       return;

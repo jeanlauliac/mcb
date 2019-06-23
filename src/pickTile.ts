@@ -1,21 +1,21 @@
-import { TILE_HALF_WIDTH, TILE_HALF_HEIGHT } from "./constants";
 import Coords from "./Coords";
 import ScreenCoords from "./ScreenCoords";
 
 export default function pickTile(
+  tileHalfSize: ScreenCoords,
   pickedCoords: Coords,
   coords: ScreenCoords
 ): void {
-  let gridRow = Math.floor(coords.y / TILE_HALF_HEIGHT);
-  let gridCol = Math.floor(coords.x / TILE_HALF_WIDTH);
-  let localX = coords.x % TILE_HALF_WIDTH;
-  let localY = coords.y % TILE_HALF_HEIGHT;
+  let gridRow = Math.floor(coords.y / tileHalfSize.y);
+  let gridCol = Math.floor(coords.x / tileHalfSize.x);
+  let localX = coords.x % tileHalfSize.x;
+  let localY = coords.y % tileHalfSize.y;
   let row = 0;
   let col = 0;
   if ((gridRow + gridCol) % 2 === 0) {
     // Bottom-left to top-right split
-    let relY = localY - TILE_HALF_HEIGHT;
-    if (crossProduct(TILE_HALF_WIDTH, -TILE_HALF_HEIGHT, localX, relY) < 0) {
+    let relY = localY - tileHalfSize.y;
+    if (crossProduct(tileHalfSize.x, -tileHalfSize.y, localX, relY) < 0) {
       // top-left corner
       row = gridRow;
       if (gridRow % 2 === 0) {
@@ -33,7 +33,7 @@ export default function pickTile(
       }
     }
   } else {
-    if (crossProduct(TILE_HALF_WIDTH, TILE_HALF_HEIGHT, localX, localY) < 0) {
+    if (crossProduct(tileHalfSize.x, tileHalfSize.y, localX, localY) < 0) {
       // top-right corner
       row = gridRow;
       if (gridRow % 2 === 0) {
